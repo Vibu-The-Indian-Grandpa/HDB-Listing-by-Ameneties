@@ -291,12 +291,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const form = document.getElementById("form");
     const MRTStationCheckbox = document.getElementById("MRTStationCheckbox");
     const MallCheckbox = document.getElementById("MallCheckbox");
-    const SchoolCheckbox = document.getElementById("SchoolCheckbox");
 
-    // Get slider values
-    const MRTSlider = document.getElementById("MRTSlider").value;
-    const MallRangeSlider = document.getElementById("MallRangeSlider").value;
-    const SchoolRangeSlider = document.getElementById("SchoolRangeSlider").value;
+    const Primary = document.getElementById("PrimaryCheckbox");
+    const Secondary = document.getElementById("SecondaryCheckbox");
+    const JuniorCollege = document.getElementById("JCCheckbox");
+
+
 
     const warningCard = document.getElementById("warningCard");
 
@@ -308,24 +308,25 @@ document.addEventListener("DOMContentLoaded", async function () {
         //Hides warning card if it was displayed
         warningCard.classList.add("d-none");
 
-        let listOfSchool, listOfMall, listOfMrt, combinedList;
+        let listOfSchool,listofpri,listofsec,listofjc, listOfMall, listOfMrt, combinedList;
         let locationInput = document.getElementById("location").value;
-        //error handling
+        //error handlingconsol
         console.log(locationInput)
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
 
         let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
+    
 
         for (let i = 0; i < specifiedList; i++) {
             // did it like this so that if one of the check box wasnt ticked, the code would still display without issue
-            combinedList.push([[specifiedList[i]], [], [], []]);
+            combinedList.push([[specifiedList[i]], [], [], [], [], []]);
         }
 
         if (MRTStationCheckbox.checked) {
             // MRT List
             // run the function to get mrt
-            // listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMrt);
+            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMrt);
             //rmb to add the details
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][1].push(listOfMrt[i]);
@@ -337,22 +338,47 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (MallCheckbox.checked) {
             // MALL LIST
             // run the function to get mall
-            // listOFMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMall);
+            listOFMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMall);
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][2].push(listOfMall[i]);
             }
         }
 
         // Example: Check if School checkbox is checked
-        if (SchoolCheckbox.checked) {
+        if (Primary.checked) {
+            // SCHOOL LIST
+            // CHECK FOR TYPE OF SCHOOL
+            
+            // run the function to get SCHOOL
+            listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+            listofpri=listOfSchool.filter(school => school.mainlevel_code == "PRIMARY")
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][3].push(listOfpri[i]);
+            }
+        }
+
+        if (Secondary.checked) {
             // SCHOOL LIST
             // CHECK FOR TYPE OF SCHOOL
             // run the function to get SCHOOL
-            // listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+            listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+            listofsec=listOfSchool.filter(school => school.mainlevel_code == "SECONDARY")
             for (let i = 0; i < specifiedList.length; i++) {
-                combinedList[i][3].push(listOfSchool[i]);
+                combinedList[i][4].push(listOfsec[i]);
             }
         }
+
+        if (JuniorCollege.checked) {
+            // SCHOOL LIST
+            // CHECK FOR TYPE OF SCHOOL
+            // run the function to get SCHOOL
+            listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+            listofjc=listOfSchool.filter(school => school.mainlevel_code == "JUNIOR COLLEGE")
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][5].push(listOfjc[i]);
+            }
+        }
+
         // [[object, ]]
         for (let i = 0; i < specifiedList.length; i++) {
             combinedList.sort()
@@ -365,6 +391,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             // Create card element
             let card = document.createElement("div");
             card.classList.add("card");
+            console.log(combinedList)
 
             // Card content
             card.innerHTML = `
@@ -388,8 +415,16 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             // Check if SchoolCheckbox is checked and add School info
-            if (SchoolCheckbox.checked && combinedList[i][3].length > 0) {
+            if (Primary.checked && combinedList[i][3].length > 0) {
                 cardContent += `<p>School Distance: ${combinedList[i][3][0].distance.toFixed(2)} km</p>`;
+            }
+
+            if (Secondary.checked && combinedList[i][4].length > 0) {
+                cardContent += `<p>School Distance: ${combinedList[i][4][0].distance.toFixed(2)} km</p>`;
+            }
+
+            if (JuniorCollege.checked && combinedList[i][5].length > 0) {
+                cardContent += `<p>School Distance: ${combinedList[i][5][0].distance.toFixed(2)} km</p>`;
             }
 
             // Set the inner HTML of the card
