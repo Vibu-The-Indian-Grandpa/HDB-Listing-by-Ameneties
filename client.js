@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async function () {
 
-    let HDBData, HDBByTown, HDBinfo;
+    let  HDBinfo;
 
     const schoolData =[];
     const HDBList = [];
@@ -78,6 +78,30 @@ document.addEventListener("DOMContentLoaded", async function () {
         console.log(HDBList);
     }
 
+    async function getCoordinates(address) {
+        const url = `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(address)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`;
+    
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const resultsDict = await response.json();
+            console.log(resultsDict);
+            
+            if (resultsDict.results.length > 0) {
+                return {
+                    latitude: resultsDict.results[0].LATITUDE,
+                    longitude: resultsDict.results[0].LONGITUDE
+                };
+            } else {
+                return null; // or handle the case where no results are found
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return null; // or handle the error appropriately
+        }
+    }
     /******************************************************************************/
     // async await 
 
@@ -111,15 +135,51 @@ document.addEventListener("DOMContentLoaded", async function () {
         return null; // or some default value
     }
 
+    function getListOfAddress(list){
+        let listOfAddress = [];
+        for (const item of list){
+            listOfAddress.add(item.block + " " + item.street_name);
+        }
+        
+        return listOfAddress;
+    }
+
+    function removeDuplicates(list) {
+        let seen = new Set(); // To track unique concatenated strings
+        return list.filter(item => {
+            let key = `${item.flat_type} ${item.block} ${item.street_name} ${item.flat_model}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                return true; // Keep this item in the filtered array
+            }
+            return false;
+        });
+    }
+
     function HDBOption(data) {
         let LISTS = [...data];
         const D2R = Math.PI / 180
         return {
+            ////////////////////////////////
             getSpecifiedHDB(data) {
-                const specifiedLocations = data.map(location => getObjectById(LISTS, location));
+                const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
+                const uniqueSpecifiedLocations = removeDuplicates(specifiedLocations);
 
+                return uniqueSpecifiedLocations;
+            },
+            getListOfCoordinates(uniqueLocationList){
+                const listOfAddress = getListOfAddress(uniqueSpecifiedLocations);
+                let listOfCoordinates = [];
+
+                for (const item of listOfAddress){
+                    getCoordinates(item);
+                }
+                return [];
+            },
+            getListOfDist(){
 
             }
+            /////////////////////////////////
         }
     };
 
