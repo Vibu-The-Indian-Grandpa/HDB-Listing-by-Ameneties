@@ -2,41 +2,39 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Retrieve Data from Firebase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneMap with Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 20px;
-            background-color: #F0F0F0;
+        #map {
+            height: 100vh;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <h1>Retrieve Data from Firebase</h1>
-    <div id="dataDisplay">Loading...</div>
+    <div id="map"></div>
 
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // Your Firebase Realtime Database URL
-        const databaseURL = "https://hdbamenities-default-rtdb.asia-southeast1.firebasedatabase.app/";
+        var map = L.map('map').setView([1.3521, 103.8198], 11); // Center the map on Singapore with zoom level 11
 
-        // Function to retrieve data
-        async function fetchData() {
-            try {
-                const response = await fetch(`${databaseURL}/yourDataNode.json`);
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                const data = await response.json();
-                document.getElementById('dataDisplay').innerText = JSON.stringify(data, null, 2);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                document.getElementById('dataDisplay').innerText = 'Error fetching data';
-            }
-        }
+        var basemap = L.tileLayer('https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png', {
+            detectRetina: true,
+            maxZoom: 19,
+            minZoom: 11,
+            /** DO NOT REMOVE the OneMap attribution below **/
+            attribution: '<img src="https://www.onemap.gov.sg/web-assets/images/logo/om_logo.png" style="height:20px;width:20px;"/>&nbsp;<a href="https://www.onemap.gov.sg/" target="_blank" rel="noopener noreferrer">OneMap</a>&nbsp;&copy;&nbsp;contributors&nbsp;&#124;&nbsp;<a href="https://www.sla.gov.sg/" target="_blank" rel="noopener noreferrer">Singapore Land Authority</a>'
+        }).addTo(map);
 
-        // Call the function to fetch data
-        fetchData();
+        // Add markers to the map
+        var marker1 = L.marker([1.3521, 103.8198]).addTo(map); // Example marker at Singapore
+        var marker2 = L.marker([1.3000, 103.8000]).addTo(map); // Another marker example
+
+        // Optional: Add popups to the markers
+        marker1.bindPopup("<b>Marker 1</b><br>This is Singapore.").openPopup();
+        marker2.bindPopup("<b>Marker 2</b><br>This is another location in Singapore.");
+
     </script>
 </body>
 </html>
