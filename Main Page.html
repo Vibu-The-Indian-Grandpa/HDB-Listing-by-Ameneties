@@ -1,120 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <!-- Firebase Realtime Database SDK -->
-    <script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <meta charset="UTF-8">
     <title>HDB Finder</title>
     <style>
         body {
-            font-family: 'Roboto', Arial, sans-serif;
-        }
-        .checkbox-container {
-            text-align: left;
-            margin: 0 auto;
-            width: 350px;
-        }
-        .checkbox-label {
-            display: inline-block;
-            width: 100px;
-            vertical-align: middle;
-        }
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        button, select {
-            background-color: #004676;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: 'Roboto', Arial, sans-serif;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #F0F0F0;
         }
         select {
-            width: 200px;
+		    width: 240px;
+            font-size: 16px;
+            padding: 12px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #004676;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        .location-container {
-            text-align: left;
-            margin: 0 auto;
-            width: 350px;
+		button {
+            padding: 12px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #004676;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         input[type="checkbox"] {
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #004676;
-            border-radius: 4px;
-            outline: none;
+            display: none;
+        }
+        .checkbox-label {
             cursor: pointer;
-            position: relative;
-            vertical-align: middle;
-        }
-        input[type="checkbox"]:checked {
-            background-color: #004676;
-            border-color: #004676;
-        }
-        input[type="checkbox"]:checked::after {
-            content: '-';
-            color: white;
+            display: inline-block;
+            width: 120px;
+            padding: 12px 20px;
+            text-align: center;
+            border: 2px solid #004676;
+            border-radius: 5px;
+            margin-right: 10px;
             font-size: 14px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        }
+        .checkbox-label:hover {
+            background-color: #004676;
+            color: white;
+        }
+        input[type="checkbox"]:checked + .checkbox-label {
+            background-color: #004676;
+            color: white;
+        }
+        button[type="submit"] {
+            font-size: 18px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
+	<div class="background">
+		<h1>Welcome to HDB Finder</h1>
+		<div class="location-container">
+			Location:
+			<select id="location" name="location">
+				<option value="ANG MO KIO">Ang Mo Kio</option>
+				<option value="BISHAN">Bishan</option>
+				<option value="SAMBAWANG">Sambawang</option>
+				<option value="WOODLANDS">Woodlands</option>
+				<option value="YISHUN">Yishun</option>
+			</select>
+		</div>
+		
+		<br>
+		
+		<h2>Preferred Nearby Amenities</h2>
+		
+		<div class="checkbox-container">
+			<input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station">
+			<label for="MRTStationCheckbox" class="checkbox-label">MRT Station</label>
 
-<form>
-    <div style="text-align: center;">
-        <h1 style="font-family: 'Roboto', Arial Unicode MS;">HDB Finder</h1>
-        <div>
-            <div class="location-container">
-                <label for="location" class="location-label">Select Location :</label>
-                <select id="location" name="location">
-                    <option value="WOODLANDS">Woodlands</option>
-                    <option value="ANG MO KIO">Ang Mo Kio</option>
-                    <option value="BISHAN">Bishan</option>
-                    <option value="SEMBAWANG">Sembawang</option>
-                </select>
-<<<<<<< HEAD
-            </form> 
-        </div>
-        <br>
-        <br>
-        <div class="checkbox-container">
-            <form action="/action_page.php">
-=======
-            </div>
-            <br>
-            <br>
-            <div class="checkbox-container">
->>>>>>> e02f9cfcb0f95e5780997e6aab8271b8cf5585f0
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station">
-                    <label for="MRTStationCheckbox" class="checkbox-label">MRT Station</label>
-                </div>
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="MallCheckbox" name="Mall" value="Mall">
-                    <label for="MallCheckbox" class="checkbox-label">Mall</label>
-                </div>
-                <div class="checkbox-wrapper">
-                    <input type="checkbox" id="SchoolCheckbox" name="School" value="School">
-                    <label for="SchoolCheckbox" class="checkbox-label">School</label>
-                </div>
-            </div>
-            <br>
-            <br>
-            <button type="submit">
-                <span style="font-family: 'Roboto', Arial Unicode MS;">Find</span>
-            </button>
-            <br>
-        </div>
-    </div>
-</form>
+			<input type="checkbox" id="MallCheckbox" name="Mall" value="Mall">
+			<label for="MallCheckbox" class="checkbox-label">Mall</label>
 
+			<input type="checkbox" id="SchoolCheckbox" name="School" value="School">
+			<label for="SchoolCheckbox" class="checkbox-label">School</label>
+		</div>
+		
+		<br><br>
+		
+		<button type="submit">Find HDBs</button>
+	</div>
 </body>
 </html>
