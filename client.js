@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     async function fetchMRTData() {
         // Example usage
         const dbRef = ref(getDatabase());
-        get(child(dbRef, `Shopping Mall`)).then((snapshot) => {
+        get(child(dbRef, `MRT`)).then((snapshot) => {
             if (snapshot.exists()) {
                 MRTList.push(...snapshot.val());
                 console.log(MRTList[0],"MRT LIST");
@@ -41,12 +41,33 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
 
     }
+    async function fetchMallData() {
+        // Example usage
+        const dbRef = ref(getDatabase());
+        get(child(dbRef, `Shopping Mall`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                MallList.push(...snapshot.val());
+                console.log(MallList[0],"Mall LIST");
+            } else {
+                console.log("No data available");
+            }
+        }).catch((error) => {
+            console.error(error);
+        }).finally(() => {
+            console.log("Data fetched successfully");
+            process.exit();
+        });
+
+    }
+
+
 
     let HDBinfo;
 
     const schoolData = [];
     const HDBList = [];
     const MRTList = [];
+    const MallList = [];
     /***********************************************************************/
     // Load Data
     // Fetch data get and post
@@ -161,13 +182,16 @@ document.addEventListener("DOMContentLoaded", async function () {
     // async await 
 
     async function getAllData() {
-        HDBOption(fetchAllCollections());
+        fetchAllCollections();
         await fetchSchoolData();
+        HDBinfo = HDBOption(HDBList);
+        await fetchMRTData();
+        await fetchMallData();
     };
 
     /******************************************************************************/
 
-    function locationConversion(lo1, la1, lo2, la2, d2r) {
+    function distanceCalculation(lo1, la1, lo2, la2, d2r) {
         const R = 6367; // Radius of the Earth in kilometers
         const dlong = d2r * (lo2 - lo1);
         const dlat = d2r * (la2 - la1);
@@ -214,7 +238,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function HDBOption(data) {
         let LISTS = [...data];
-        const D2R = Math.PI / 180
+        const D2R = Math.PI / 180;
         return {
             ////////////////////////////////
             getSpecifiedHDB(data) {
@@ -223,14 +247,35 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                 return uniqueSpecifiedLocations;
             },
-            getListOfCoordinates(uniqueLocationList) {
+            getListOfCoordinates(uniqueLocationList){
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
 
-                for (const item of listOfAddress) {
+                for (const item of listOfAddress){
                     listOfCoordinates.add(getCoordinates(item));
                 }
                 return listOfCoordinates;
+            },
+            getListOfDist(specifiedCoordList, amenityCoordList) {
+                let leastDistance;
+                let tempDistance;
+                let arrayOfLeastDist = [];
+                let arrayOfamenityCoord = [];
+
+                for (let i = 0; i < specifiedCoordList; i++) {
+                    // loop through all the locations
+                    for (let j = 0; j < amenityCoordList; j++) {
+                        // loop through all the amenity locations
+                        tempDistance = distanceCalculation(specifiedCoordList[0], specifiedCoordList[1], amenityCoordList[0], amenityCoordList[1], D2R);
+                        if (leastDistance > tempDistance) {
+                            leastDistance = tempDistance;
+                            arrayOfamenityCoord = amenityCoordList[j];
+                        }
+                    }
+                    arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
+                }
+
+                return arrayOfLeastDist;
             }
             /////////////////////////////////
         }
@@ -245,62 +290,117 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Method to compare and push the values in
 
-    // Define the custom element
-    customElements.define('custom-card', CustomCard);
-
     //Define the forms and etc
-    const TownForm = document.getElementById("TownForm");
+    const form = document.getElementById("form");
+    const MRTStationCheckbox = document.getElementById("MRTStationCheckbox");
+    const MallCheckbox = document.getElementById("MallCheckbox");
+    const SchoolCheckbox = document.getElementById("SchoolCheckbox");
+
+    // Get slider values
+    const MRTSlider = document.getElementById("MRTSlider").value;
+    const MallRangeSlider = document.getElementById("MallRangeSlider").value;
+    const SchoolRangeSlider = document.getElementById("SchoolRangeSlider").value;
 
     const warningCard = document.getElementById("warningCard");
-    const warningText = document.getElementById("warningText");
-
 
     /***********************************All Callbacks****************************************/
 
-    Form.addEventListener("submit", function (event) {
-        console.log("TownForm.addEventListener");
+    form.addEventListener("submit", function (event) {
+        console.log("Form.addEventListener");
         event.preventDefault();
         //Hides warning card if it was displayed
         warningCard.classList.add("d-none");
 
-
-        let townInput = document.getElementById("town").value;
+        let listOfSchool, listOfMall, listOfMrt, combinedList;
+        let locationInput = document.getElementById("location").value;
         //error handling
-        console.log(townInput)
+        console.log(locationInput)
 
-        let TownsArray = HDBinfo.displayTown();
-        //Split input into an array by filtering spaces and commas
-        let townArrayOfNumbers = townInput.split(/,|\s/).filter(Boolean);
+        let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
 
-        //error handling
-        console.log(townArrayOfNumbers);
+        let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
 
-        let validTowns = [];
+        for (let i = 0; i < specifiedList; i++) {
+            // did it like this so that if one of the check box wasnt ticked, the code would still display without issue
+            combinedList.push([[specifiedList[i]], [], [], []]);
+        }
 
-        TownsArray.forEach((item) => {
-            townArrayOfNumbers.forEach((number) => {
-                if (item == TownsArray[number - 1]) {
-                    validTowns.push(item);
-                }
-            });
-        });
+        if (MRTStationCheckbox.checked) {
+            // MRT List
+            // run the function to get mrt
+            // listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMrt);
+            //rmb to add the details
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][1].push(listOfMrt[i]);
+            }
 
-        if (validTowns.length !== townArrayOfNumbers.length) {
-            warningCard.classList.remove("d-none");
-            warningText.innerText = "Please enter your input in the valid format (i.e. 1, 2, 5 or 1 2 5)";
-        } else {
+        }
 
-            // This Clears lists and the console.log is for error handling
-            console.log("Clear Lists");
-            const FilteredExtremeList = document.getElementById("filterExtremeList");
-            const FilteredAverageList = document.getElementById("filterAverageList");
-            FilteredExtremeList.innerHTML = '';
-            FilteredAverageList.innerHTML = '';
+        // Example: Check if Mall checkbox is checked
+        if (MallCheckbox.checked) {
+            // MALL LIST
+            // run the function to get mall
+            // listOFMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMall);
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][2].push(listOfMall[i]);
+            }
+        }
 
-            console.log(validTowns);
-            HDBinfo.displayFilterByTown(validTowns);
-            HDBinfo.displayMeanMedianByTownAndFlatType(validTowns);
-        };
-        TownForm.reset();
+        // Example: Check if School checkbox is checked
+        if (SchoolCheckbox.checked) {
+            // SCHOOL LIST
+            // CHECK FOR TYPE OF SCHOOL
+            // run the function to get SCHOOL
+            // listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][3].push(listOfSchool[i]);
+            }
+        }
+        // [[object, ]]
+        for (let i = 0; i < specifiedList.length; i++) {
+            combinedList.sort()
+        }
+
+        for (let i = 0; i < 10; i++) {
+            // Retrieve the corresponding specified HDB object
+            let specifiedHDB = specifiedList[i]; // Assuming combinedResults is sorted to match specifiedList
+
+            // Create card element
+            let card = document.createElement("div");
+            card.classList.add("card");
+
+            // Card content
+            card.innerHTML = `
+                <h3>${combinedList[i][1].flat_type} - ${combinedList[i][1].block} ${combinedList[i][1].street_name}</h3>
+                <p>Town: ${combinedList[i][1].town}</p>
+                <p>Storey Range: ${combinedList[i][1].storey_range}</p>
+                <p>Flat Area: ${combinedList[i][1].flat_area} sqm</p>
+                <p>Lease Commence Date: ${combinedList[i][1].lease_commence_date}</p>
+                <p>Remaining Lease: ${combinedList[i][1].remaining_lease} years</p>
+                <p>Resale Price: $${combinedList[i][1].resale_price}</p>
+            `;
+
+            // Check if MRTStationCheckbox is checked and add MRT info
+            if (MRTStationCheckbox.checked && combinedList[i][1].length > 0) {
+                cardContent += `<p>MRT Distance: ${combinedList[i][1][0].distance.toFixed(2)} km</p>`;
+            }
+
+            // Check if MallCheckbox is checked and add Mall info
+            if (MallCheckbox.checked && combinedList[i][2].length > 0) {
+                cardContent += `<p>Mall Distance: ${combinedList[i][2][0].distance.toFixed(2)} km</p>`;
+            }
+
+            // Check if SchoolCheckbox is checked and add School info
+            if (SchoolCheckbox.checked && combinedList[i][3].length > 0) {
+                cardContent += `<p>School Distance: ${combinedList[i][3][0].distance.toFixed(2)} km</p>`;
+            }
+
+            // Set the inner HTML of the card
+            card.innerHTML = cardContent;
+            // Append card to results container
+            resultsContainer.appendChild(card);
+        }
+
+        form.reset();
     });
 });
