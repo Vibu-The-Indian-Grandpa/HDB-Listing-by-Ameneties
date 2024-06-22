@@ -105,7 +105,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     // async await 
 
     async function getAllData() {
-        HDBOption(fetchAllCollections());
+        fetchAllCollections();
+        HDBOption(HDBList);
     };
 
     /******************************************************************************/
@@ -166,16 +167,13 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return uniqueSpecifiedLocations;
             },
             getListOfCoordinates(uniqueLocationList){
-                const listOfAddress = getListOfAddress(uniqueSpecifiedLocations);
+                const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
 
                 for (const item of listOfAddress){
-                    getCoordinates(item);
+                    listOfCoordinates.add(getCoordinates(item));
                 }
-                return [];
-            },
-            getListOfDist(){
-
+                return listOfCoordinates;
             }
             /////////////////////////////////
         }
@@ -184,16 +182,11 @@ document.addEventListener("DOMContentLoaded", async function () {
     /******************************************************************************/
     await getAllData();
 
-    // Method to take in the location and push a new set of values into a new array
-
-
-
-
-    // Method to convert the location to coordinates
 
     // Method to push amenitites location into an array
 
     // Method to compare and push the values in
+
     // Define the custom element
     customElements.define('custom-card', CustomCard);
 
@@ -204,34 +197,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     const warningText = document.getElementById("warningText");
 
 
-
-    let TownsListForDisplay = HDBinfo.displayTown();
     /***********************************All Callbacks****************************************/
 
-    const callbackToDisplayTowns = (townList) => {
-
-
-        const Towns = document.getElementById("showTownList");
-        let index = 1;
-        console.log(townList)
-        townList.forEach((town) => {
-            const displayItem = document.createElement("div");
-            displayItem.innerHTML = `
-                        <p class="card-text">
-                            ${index}. ${town} <br>
-                        </p>
-                    </div>
-                </div>
-                `;
-            console.log(displayItem)
-            Towns.appendChild(displayItem);
-            index++;
-        });
-    };
-    //Calling the callbackToDisplayTowns
-    callbackToDisplayTowns(TownsListForDisplay);
-
-    TownForm.addEventListener("submit", function (event) {
+    Form.addEventListener("submit", function (event) {
         console.log("TownForm.addEventListener");
         event.preventDefault();
         //Hides warning card if it was displayed
