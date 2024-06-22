@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async function () {
 
-    let HDBData, HDBByTown, HDBinfo;
+    let HDBData, HDBByTown, HDBinfo,PrimarySchoolData,SecondarySchoolData;
 
     const HDBList = [];
     /***********************************************************************/
@@ -25,6 +25,39 @@ document.addEventListener("DOMContentLoaded", async function () {
             return null;
         }
     }
+    async function fetchSchoolData() {
+        const datasetId = "d_688b934f82c1059ed0a6993d2a829089"
+        const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
+        fetch(url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch data');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // console.log(data);
+        
+            // Extract records
+            const records = data.result.records;
+        
+            // Filter to keep only school_name and postal_code
+            records.forEach(record => {
+              arr.push({
+                school_name: record.school_name,
+                address : record.address,
+                postal_code: record.postal_code,
+                level : record.mainlevel_code
+              });
+            });
+            // Print the filtered records
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    }
+
+
 
     async function fetchAllCollections() {
         try {
@@ -57,33 +90,33 @@ document.addEventListener("DOMContentLoaded", async function () {
         const R = 6367; // Radius of the Earth in kilometers
         const dlong = d2r * (lo2 - lo1);
         const dlat = d2r * (la2 - la1);
-      
+
         const a = Math.pow(Math.sin(dlat / 2), 2) +
-                  Math.cos(la1 * d2r) * Math.cos(la2 * d2r) *
-                  Math.pow(Math.sin(dlong / 2), 2);
+            Math.cos(la1 * d2r) * Math.cos(la2 * d2r) *
+            Math.pow(Math.sin(dlong / 2), 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const dist = R * c;
-      
-        return dist;
-      }
 
-      function getTownByLocation(list, location) {
+        return dist;
+    }
+
+    function getTownByLocation(list, location) {
         for (const item of list) {
-          if (item.town === location) {
-            return item;
-          }
+            if (item.town === location) {
+                return item;
+            }
         }
         return null; // or some default value
-      }
+    }
 
     function HDBOption(data) {
         let LISTS = [...data];
-        const D2R = Math.PI/180
+        const D2R = Math.PI / 180
         return {
             getSpecifiedHDB(data) {
-                  const specifiedLocations = data.map(location => getObjectById(LISTS, location));
+                const specifiedLocations = data.map(location => getObjectById(LISTS, location));
 
-                  
+
             }
         }
     };
@@ -91,9 +124,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     /******************************************************************************/
     await getAllData();
 
-
-
     // Method to take in the location and push a new set of values into a new array
+
+
+
 
     // Method to convert the location to coordinates
 
