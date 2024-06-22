@@ -1,31 +1,20 @@
+        // Your Firebase Realtime Database URL
+        const databaseURL = "https://hdbamenities-default-rtdb.asia-southeast1.firebasedatabase.app/";
 
-// Your Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
-    authDomain: "hdbamenities.firebaseapp.com",
-    databaseURL: "https://hdbamenities-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    projectId: "hdbamenities",
-    storageBucket: "hdbamenities.appspot.com",
-    messagingSenderId: "410996522613",
-    appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
-    measurementId: "G-RY5WH9KYXF"
-  };
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+        // Function to retrieve data
+        async function fetchData() {
+            try {
+                const response = await fetch(`${databaseURL}/yourDataNode.json`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                const data = await response.json();
+                document.getElementById('dataDisplay').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('dataDisplay').innerText = 'Error fetching data';
+            }
+        }
 
-// Example usage
-const dbRef = ref(getDatabase());
-get(child(dbRef, `Shopping Mall`)).then((snapshot) => {
-  if (snapshot.exists()) {
-    arr.push(...snapshot.val());
-    console.log(arr[0]);
-  } else {
-    console.log("No data available");
-  }
-}).catch((error) => {
-  console.error(error);
-}).finally(()=>{
-    console.log("Data fetched successfully");
-    process.exit();
-});
+        // Call the function to fetch data
+        fetchData();

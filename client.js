@@ -1,10 +1,11 @@
 
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, get, child } from 'firebase/database';
+// import { initializeApp } from 'firebase/app';
+// import { getDatabase, ref, get, child } from 'firebase/database';
 
 
 
-
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get,child  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
 
@@ -28,8 +29,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         const dbRef = ref(getDatabase());
         get(child(dbRef, `MRT`)).then((snapshot) => {
             if (snapshot.exists()) {
-                MRTList.push(...snapshot.val());
-                console.log(MRTList[0],"MRT LIST");
             } else {
                 console.log("No data available");
             }
@@ -37,7 +36,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.error(error);
         }).finally(() => {
             console.log("Data fetched successfully");
-            process.exit();
         });
 
     }
@@ -47,7 +45,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         get(child(dbRef, `Shopping Mall`)).then((snapshot) => {
             if (snapshot.exists()) {
                 MallList.push(...snapshot.val());
-                console.log(MallList[0],"Mall LIST");
             } else {
                 console.log("No data available");
             }
@@ -55,7 +52,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.error(error);
         }).finally(() => {
             console.log("Data fetched successfully");
-            process.exit();
         });
 
     }
@@ -125,7 +121,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                         throw new Error('Unknown Error');
                     }
                 }
-                console.log(schoolData);
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
@@ -161,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 throw new Error('Network response was not ok');
             }
             const resultsDict = await response.json();
-            console.log(resultsDict);
+           // console.log(resultsDict);
 
             if (resultsDict.results.length > 0) {
                 return {
@@ -244,7 +239,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             getSpecifiedHDB(data) {
                 const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
                 const uniqueSpecifiedLocations = removeDuplicates(specifiedLocations);
-
                 return uniqueSpecifiedLocations;
             },
             getListOfCoordinates(uniqueLocationList){
