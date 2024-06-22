@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
             return response.json();
           })
-          .then(data => {
+          .then(async data => {
             // console.log(data);
         
             // Extract records
@@ -52,6 +52,16 @@ document.addEventListener("DOMContentLoaded", async function () {
               });
             });
             // Print the filtered records
+            for (const school of schoolData) {
+                const coordinates = await getCoordinates(school.address);
+                if (coordinates) {
+                    school.latitude = coordinates.latitude;
+                    school.longitude = coordinates.longitude;
+                }else{
+                    throw new Error('Unknown Error');
+                }
+            }
+            console.log(schoolData);
           })
           .catch(error => {
             console.error('Error fetching data:', error);
@@ -102,12 +112,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             return null; // or handle the error appropriately
         }
     }
+
+
     /******************************************************************************/
     // async await 
 
     async function getAllData() {
         HDBOption(fetchAllCollections());
-        fetchSchoolData();
+        await fetchSchoolData();
     };
 
     /******************************************************************************/
@@ -125,6 +137,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         return dist;
     }
+
 
     function getTownByLocation(list, location) {
         for (const item of list) {
