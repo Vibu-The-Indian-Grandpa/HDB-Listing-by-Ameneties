@@ -6,14 +6,6 @@
         body {
             font-family: 'Roboto', Arial, sans-serif;
         }
-        .slider-container {
-            display: none;
-            margin-top: 10px;
-        }
-        .slider-label {
-            display: inline-block;
-            width: 150px;
-        }
         .checkbox-container {
             text-align: left;
             margin: 0 auto;
@@ -29,7 +21,7 @@
             align-items: center;
             margin-bottom: 10px;
         }
-        button, select, input[type="range"] {
+        button, select {
             background-color: #004676;
             color: white;
             border: none;
@@ -40,41 +32,10 @@
         select {
             width: 200px;
         }
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 8px;
-            border-radius: 5px;
-            background: #003153;
-            outline: none;
-            opacity: 0.7;
-            transition: opacity .2s;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-        }
         .location-container {
             text-align: left;
             margin: 0 auto;
             width: 350px;
-        }
-        .location-label {
-            display: inline-block;
-            width: 150px;
         }
         input[type="checkbox"] {
             appearance: none;
@@ -104,11 +65,11 @@
 </head>
 <body>
 
-<div style="text-align: center;">
-    <h1 style="font-family: 'Roboto', Arial Unicode MS;">HDB Finder</h1>
-    <div>
-        <div class="location-container">
-            <form action="/action_page.php">
+<form>
+    <div style="text-align: center;">
+        <h1 style="font-family: 'Roboto', Arial Unicode MS;">HDB Finder</h1>
+        <div>
+            <div class="location-container">
                 <label for="location" class="location-label">Select Location :</label>
                 <select id="location" name="location">
                     <option value="WOODLANDS">Woodlands</option>
@@ -116,78 +77,41 @@
                     <option value="BISHAN">Bishan</option>
                     <option value="SEMBAWANG">Sembawang</option>
                 </select>
+<<<<<<< HEAD
             </form> 
         </div>
         <br>
         <br>
         <div class="checkbox-container">
             <form action="/action_page.php">
+=======
+            </div>
+            <br>
+            <br>
+            <div class="checkbox-container">
+>>>>>>> e02f9cfcb0f95e5780997e6aab8271b8cf5585f0
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station" onchange="toggleSlider('MRTStationSlider')">
+                    <input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station">
                     <label for="MRTStationCheckbox" class="checkbox-label">MRT Station</label>
                 </div>
-                <div id="MRTStationSlider" class="slider-container">
-                    <input type="range" min="1" max="2000" value="1000" class="slider" id="MRTSlider">
-                    <label for="MRTSlider" class="slider-label">Distance: <span id="MRTSliderValue">1000</span>m</label>
-                </div>
-                <br>
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="MallCheckbox" name="Mall" value="Mall" onchange="toggleSlider('MallSlider')">
+                    <input type="checkbox" id="MallCheckbox" name="Mall" value="Mall">
                     <label for="MallCheckbox" class="checkbox-label">Mall</label>
                 </div>
-                <div id="MallSlider" class="slider-container">
-                    <input type="range" min="1" max="2000" value="1000" class="slider" id="MallRangeSlider">
-                    <label for="MallRangeSlider" class="slider-label">Distance: <span id="MallSliderValue">1000</span>m</label>
-                </div>
-                <br>
                 <div class="checkbox-wrapper">
-                    <input type="checkbox" id="SchoolCheckbox" name="School" value="School" onchange="toggleSlider('SchoolSlider')">
+                    <input type="checkbox" id="SchoolCheckbox" name="School" value="School">
                     <label for="SchoolCheckbox" class="checkbox-label">School</label>
                 </div>
-                <div id="SchoolSlider" class="slider-container">
-                    <input type="range" min="1" max="2000" value="1000" class="slider" id="SchoolRangeSlider">
-                    <label for="SchoolRangeSlider" class="slider-label">Distance: <span id="SchoolSliderValue">1000</span>m</label>
-                </div>
-                <br><br>
-            </form>
+            </div>
+            <br>
+            <br>
+            <button type="submit">
+                <span style="font-family: 'Roboto', Arial Unicode MS;">Find</span>
+            </button>
+            <br>
         </div>
-        <br>
-        <br>
-        <button>
-            <span style="font-family: 'Roboto', Arial Unicode MS;">Find</span>
-        </button>
-        <br>
     </div>
-</div>
-
-<script>
-    function toggleSlider(sliderId) {
-        var slider = document.getElementById(sliderId);
-        if (slider.style.display === "none" || slider.style.display === "") {
-            slider.style.display = "block";
-        } else {
-            slider.style.display = "none";
-        }
-    }
-
-    var MRTSlider = document.getElementById("MRTSlider");
-    var MRTSliderValue = document.getElementById("MRTSliderValue");
-    MRTSlider.oninput = function() {
-        MRTSliderValue.innerHTML = this.value;
-    }
-
-    var MallSlider = document.getElementById("MallRangeSlider");
-    var MallSliderValue = document.getElementById("MallSliderValue");
-    MallSlider.oninput = function() {
-        MallSliderValue.innerHTML = this.value;
-    }
-
-    var SchoolSlider = document.getElementById("SchoolRangeSlider");
-    var SchoolSliderValue = document.getElementById("SchoolSliderValue");
-    SchoolSlider.oninput = function() {
-        SchoolSliderValue.innerHTML = this.value;
-    }
-</script>
+</form>
 
 </body>
 </html>
