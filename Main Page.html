@@ -11,7 +11,7 @@
             background-color: #F0F0F0;
         }
         select {
-		    width: 240px;
+            width: 240px;
             font-size: 16px;
             padding: 12px 20px;
             border-radius: 5px;
@@ -23,7 +23,7 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-		button {
+        button {
             padding: 12px 20px;
             border-radius: 5px;
             border: none;
@@ -63,37 +63,52 @@
     </style>
 </head>
 <body>
-	<div class="background">
-		<h1>Welcome to HDB Finder</h1>
-		<div class="location-container">
-			Location:
-			<select id="location" name="location">
-				<option value="ANG MO KIO">Ang Mo Kio</option>
-				<option value="BISHAN">Bishan</option>
-				<option value="SAMBAWANG">Sambawang</option>
-				<option value="WOODLANDS">Woodlands</option>
-				<option value="YISHUN">Yishun</option>
-			</select>
-		</div>
-		
-		<br>
-		
-		<h2>Preferred Nearby Amenities</h2>
-		
-		<div class="checkbox-container">
-			<input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station">
-			<label for="MRTStationCheckbox" class="checkbox-label">MRT Station</label>
+    <div class="background">
+        <h1>Welcome to HDB Finder</h1>
+        <div class="location-container">
+            Location: <select id="location" name="location"></select>
 
-			<input type="checkbox" id="MallCheckbox" name="Mall" value="Mall">
-			<label for="MallCheckbox" class="checkbox-label">Mall</label>
+            <script>
+                const towns = ['ANG MO KIO', 'BEDOK', 'BISHAN', 'BUKIT BATOK', 'BUKIT MERAH', 'BUKIT PANJANG', 'BUKIT TIMAH', 
+                               'CENTRAL AREA', 'CHOA CHU KANG', 'CLEMENTI', 'GEYLANG', 'HOUGANG', 'JURONG EAST', 'JURONG WEST', 
+                               'KALLANG/WHAMPOA', 'MARINE PARADE', 'PASIR RIS', 'PUNGGOL', 'QUEENSTOWN', 'SEMBAWANG', 'SENGKANG', 
+                               'SERANGOON', 'TAMPINES', 'TOA PAYOH', 'WOODLANDS', 'YISHUN'];
 
-			<input type="checkbox" id="SchoolCheckbox" name="School" value="School">
-			<label for="SchoolCheckbox" class="checkbox-label">School</label>
-		</div>
-		
-		<br><br>
-		
-		<button type="submit">Find HDBs</button>
-	</div>
+                const selectElement = document.getElementById('location');
+
+                towns.forEach(town => {
+                    const option = document.createElement('option');
+                    option.value = town;
+                    option.textContent = town.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                    selectElement.appendChild(option);
+                });
+            </script>
+        </div>
+        
+        <br>
+        
+        <h2>Preferred Nearby Amenities</h2>
+        
+        <div class="checkbox-container">
+            <input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station">
+            <label for="MRTStationCheckbox" class="checkbox-label">MRT Station</label>
+
+            <input type="checkbox" id="MallCheckbox" name="Mall" value="Mall">
+            <label for="MallCheckbox" class="checkbox-label">Mall</label>
+
+            <input type="checkbox" id="PrimaryCheckbox" name="PrimarySchool" value="PrimarySchool">
+            <label for="PrimaryCheckbox" class="checkbox-label">Primary School</label>
+            
+            <input type="checkbox" id="SecondaryCheckbox" name="SecondarySchool" value="SecondarySchool">
+            <label for="SecondaryCheckbox" class="checkbox-label">Secondary School</label>
+            
+            <input type="checkbox" id="JCCheckbox" name="JC" value="JC">
+            <label for="JCCheckbox" class="checkbox-label">Junior College</label>
+        </div>
+        
+        <br><br>
+        
+        <button type="submit">Find HDBs</button>
+    </div>
 </body>
 </html>
