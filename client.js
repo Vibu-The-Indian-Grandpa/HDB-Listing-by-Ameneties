@@ -56,42 +56,42 @@ document.addEventListener("DOMContentLoaded", async function () {
         const datasetId = "d_688b934f82c1059ed0a6993d2a829089"
         const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
         fetch(url)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Failed to fetch data');
-            }
-            return response.json();
-          })
-          .then(async data => {
-            // console.log(data);
-        
-            // Extract records
-            const records = data.result.records;
-        
-            // Filter to keep only school_name and postal_code
-            records.forEach(record => {
-              schoolData.push({
-                school_name: record.school_name,
-                address : record.address,
-                postal_code: record.postal_code,
-                level : record.mainlevel_code
-              });
-            });
-            // Print the filtered records
-            for (const school of schoolData) {
-                const coordinates = await getCoordinates(school.address);
-                if (coordinates) {
-                    school.latitude = coordinates.latitude;
-                    school.longitude = coordinates.longitude;
-                }else{
-                    throw new Error('Unknown Error');
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
                 }
-            }
-            console.log(schoolData);
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error);
-          });
+                return response.json();
+            })
+            .then(async data => {
+                // console.log(data);
+
+                // Extract records
+                const records = data.result.records;
+
+                // Filter to keep only school_name and postal_code
+                records.forEach(record => {
+                    schoolData.push({
+                        school_name: record.school_name,
+                        address: record.address,
+                        postal_code: record.postal_code,
+                        level: record.mainlevel_code
+                    });
+                });
+                // Print the filtered records
+                for (const school of schoolData) {
+                    const coordinates = await getCoordinates(school.address);
+                    if (coordinates) {
+                        school.latitude = coordinates.latitude;
+                        school.longitude = coordinates.longitude;
+                    } else {
+                        throw new Error('Unknown Error');
+                    }
+                }
+                console.log(schoolData);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
     }
 
 
@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
                 return listOfCoordinates;
             },
-            getListOfDist(specifiedCoordList, amenityCoordList, type) {
+            getListOfDist(specifiedCoordList, amenityCoordList) {
                 let leastDistance;
                 let tempDistance;
                 let arrayOfLeastDist = [];
@@ -281,10 +281,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
 
+        for (let i = 0; i < specifiedList; i++) {
+            // did it like this so that if one of the check box wasnt ticked, the code would still display without issue
+            combinedList.push([[specifiedList[i]], [], [], []]);
+        }
+
         if (MRTStationCheckbox.checked) {
             // MRT List
             // run the function to get mrt
             // listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMrt);
+            //rmb to add the details
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][1].push(listOfMrt[i]);
+            }
+
         }
 
         // Example: Check if Mall checkbox is checked
@@ -292,6 +302,9 @@ document.addEventListener("DOMContentLoaded", async function () {
             // MALL LIST
             // run the function to get mall
             // listOFMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMall);
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][2].push(listOfMall[i]);
+            }
         }
 
         // Example: Check if School checkbox is checked
@@ -300,6 +313,13 @@ document.addEventListener("DOMContentLoaded", async function () {
             // CHECK FOR TYPE OF SCHOOL
             // run the function to get SCHOOL
             // listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+            for (let i = 0; i < specifiedList.length; i++) {
+                combinedList[i][3].push(listOfSchool[i]);
+            }
+        }
+        // [[object, ]]
+        for (let i = 0; i < specifiedList.length; i++) {
+            combinedList.sort()
         }
 
         for (let i = 0; i < 10; i++) {
@@ -309,19 +329,35 @@ document.addEventListener("DOMContentLoaded", async function () {
             // Create card element
             let card = document.createElement("div");
             card.classList.add("card");
-            
+
             // Card content
             card.innerHTML = `
-                <h3>${specifiedHDB.flat_type} - ${specifiedHDB.block} ${specifiedHDB.street_name}</h3>
-                <p>Town: ${specifiedHDB.town}</p>
-                <p>Storey Range: ${specifiedHDB.storey_range}</p>
-                <p>Flat Area: ${specifiedHDB.flat_area} sqm</p>
-                <p>Lease Commence Date: ${specifiedHDB.lease_commence_date}</p>
-                <p>Remaining Lease: ${specifiedHDB.remaining_lease} years</p>
-                <p>Resale Price: $${specifiedHDB.resale_price}</p>
-                <p>${amenityName} Distance: ${distance.toFixed(2)} km</p>
+                <h3>${combinedList[i][1].flat_type} - ${combinedList[i][1].block} ${combinedList[i][1].street_name}</h3>
+                <p>Town: ${combinedList[i][1].town}</p>
+                <p>Storey Range: ${combinedList[i][1].storey_range}</p>
+                <p>Flat Area: ${combinedList[i][1].flat_area} sqm</p>
+                <p>Lease Commence Date: ${combinedList[i][1].lease_commence_date}</p>
+                <p>Remaining Lease: ${combinedList[i][1].remaining_lease} years</p>
+                <p>Resale Price: $${combinedList[i][1].resale_price}</p>
             `;
 
+            // Check if MRTStationCheckbox is checked and add MRT info
+            if (MRTStationCheckbox.checked && combinedList[i][1].length > 0) {
+                cardContent += `<p>MRT Distance: ${combinedList[i][1][0].distance.toFixed(2)} km</p>`;
+            }
+
+            // Check if MallCheckbox is checked and add Mall info
+            if (MallCheckbox.checked && combinedList[i][2].length > 0) {
+                cardContent += `<p>Mall Distance: ${combinedList[i][2][0].distance.toFixed(2)} km</p>`;
+            }
+
+            // Check if SchoolCheckbox is checked and add School info
+            if (SchoolCheckbox.checked && combinedList[i][3].length > 0) {
+                cardContent += `<p>School Distance: ${combinedList[i][3][0].distance.toFixed(2)} km</p>`;
+            }
+
+            // Set the inner HTML of the card
+            card.innerHTML = cardContent;
             // Append card to results container
             resultsContainer.appendChild(card);
         }
