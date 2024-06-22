@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <!-- Firebase Realtime Database SDK -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+    <title>HDB Finder</title>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        .slider-container {
+            display: none;
+            margin-top: 10px;
+        }
+        .slider-label {
+            display: inline-block;
+            width: 150px;
+        }
+        .checkbox-container {
+            text-align: left;
+            margin: 0 auto;
+            width: 350px;
+        }
+        .checkbox-label {
+            display: inline-block;
+            width: 100px;
+            vertical-align: middle;
+        }
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        button, select, input[type="range"] {
+            background-color: #004676;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+        select {
+            width: 200px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #003153;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+        .location-container {
+            text-align: left;
+            margin: 0 auto;
+            width: 350px;
+        }
+        .location-label {
+            display: inline-block;
+            width: 150px;
+        }
+        input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #004676;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            vertical-align: middle;
+        }
+        input[type="checkbox"]:checked {
+            background-color: #004676;
+            border-color: #004676;
+        }
+        input[type="checkbox"]:checked::after {
+            content: '-';
+            color: white;
+            font-size: 14px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+
+<div style="text-align: center;">
+    <h1 style="font-family: 'Roboto', Arial Unicode MS;">HDB Finder</h1>
+    <div>
+        <div class="location-container">
+            <form action="/action_page.php">
+                <label for="location" class="location-label">Select Location :</label>
+                <select id="location" name="location">
+                    <option value="WOODLANDS">Woodlands</option>
+                    <option value="ANG MO KIO">Ang Mo Kio</option>
+                    <option value="BISHAN">Bishan</option>
+                    <option value="SAMBAWANG">Sambawang</option>
+                </select>
+            </form>
+        </div>
+        <br>
+        <br>
+        <div class="checkbox-container">
+            <form action="/action_page.php">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="MRTStationCheckbox" name="MRT Station" value="MRT Station" onchange="toggleSlider('MRTStationSlider')">
+                    <label for="MRTStationCheckbox" class="checkbox-label">MRT Station</label>
+                </div>
+                <div id="MRTStationSlider" class="slider-container">
+                    <input type="range" min="1" max="2000" value="1000" class="slider" id="MRTSlider">
+                    <label for="MRTSlider" class="slider-label">Distance: <span id="MRTSliderValue">1000</span>m</label>
+                </div>
+                <br>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="MallCheckbox" name="Mall" value="Mall" onchange="toggleSlider('MallSlider')">
+                    <label for="MallCheckbox" class="checkbox-label">Mall</label>
+                </div>
+                <div id="MallSlider" class="slider-container">
+                    <input type="range" min="1" max="2000" value="1000" class="slider" id="MallRangeSlider">
+                    <label for="MallRangeSlider" class="slider-label">Distance: <span id="MallSliderValue">1000</span>m</label>
+                </div>
+                <br>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="SchoolCheckbox" name="School" value="School" onchange="toggleSlider('SchoolSlider')">
+                    <label for="SchoolCheckbox" class="checkbox-label">School</label>
+                </div>
+                <div id="SchoolSlider" class="slider-container">
+                    <input type="range" min="1" max="2000" value="1000" class="slider" id="SchoolRangeSlider">
+                    <label for="SchoolRangeSlider" class="slider-label">Distance: <span id="SchoolSliderValue">1000</span>m</label>
+                </div>
+                <br><br>
+            </form>
+        </div>
+        <br>
+        <br>
+        <button>
+            <span style="font-family: 'Roboto', Arial Unicode MS;">Find</span>
+        </button>
+        <br>
+    </div>
+</div>
+
+<script>
+    function toggleSlider(sliderId) {
+        var slider = document.getElementById(sliderId);
+        if (slider.style.display === "none" || slider.style.display === "") {
+            slider.style.display = "block";
+        } else {
+            slider.style.display = "none";
+        }
+    }
+
+    var MRTSlider = document.getElementById("MRTSlider");
+    var MRTSliderValue = document.getElementById("MRTSliderValue");
+    MRTSlider.oninput = function() {
+        MRTSliderValue.innerHTML = this.value;
+    }
+
+    var MallSlider = document.getElementById("MallRangeSlider");
+    var MallSliderValue = document.getElementById("MallSliderValue");
+    MallSlider.oninput = function() {
+        MallSliderValue.innerHTML = this.value;
+    }
+
+    var SchoolSlider = document.getElementById("SchoolRangeSlider");
+    var SchoolSliderValue = document.getElementById("SchoolSliderValue");
+    SchoolSlider.oninput = function() {
+        SchoolSliderValue.innerHTML = this.value;
+    }
+</script>
+<script src="client.js"></script
+</body>
+</html>

@@ -1,6 +1,6 @@
 
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, get, child } from 'firebase/database';
 
 
 
@@ -8,28 +8,45 @@ import { getAnalytics } from "firebase/analytics";
 
 document.addEventListener("DOMContentLoaded", async function () {
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
-  authDomain: "hdbamenities.firebaseapp.com",
-  projectId: "hdbamenities",
-  storageBucket: "hdbamenities.appspot.com",
-  messagingSenderId: "410996522613",
-  appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
-  measurementId: "G-RY5WH9KYXF"
-};
+    // Your Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
+        authDomain: "hdbamenities.firebaseapp.com",
+        databaseURL: "https://hdbamenities-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "hdbamenities",
+        storageBucket: "hdbamenities.appspot.com",
+        messagingSenderId: "410996522613",
+        appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
+        measurementId: "G-RY5WH9KYXF"
+    };
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
+    async function fetchMRTData() {
+        // Example usage
+        const dbRef = ref(getDatabase());
+        get(child(dbRef, `Shopping Mall`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                MRTList.push(...snapshot.val());
+                console.log(MRTList[0],"MRT LIST");
+            } else {
+                console.log("No data available");
+            }
+        }).catch((error) => {
+            console.error(error);
+        }).finally(() => {
+            console.log("Data fetched successfully");
+            process.exit();
+        });
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    }
 
-      firebase.initializeApp(firebaseConfig)
+    let HDBinfo;
 
-    
-    let  HDBinfo;
-
-    const schoolData =[];
+    const schoolData = [];
     const HDBList = [];
+    const MRTList = [];
     /***********************************************************************/
     // Load Data
     // Fetch data get and post
@@ -56,42 +73,42 @@ const analytics = getAnalytics(app);
         const datasetId = "d_688b934f82c1059ed0a6993d2a829089"
         const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
         fetch(url)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Failed to fetch data');
-            }
-            return response.json();
-          })
-          .then(async data => {
-            // console.log(data);
-        
-            // Extract records
-            const records = data.result.records;
-        
-            // Filter to keep only school_name and postal_code
-            records.forEach(record => {
-              schoolData.push({
-                school_name: record.school_name,
-                address : record.address,
-                postal_code: record.postal_code,
-                level : record.mainlevel_code
-              });
-            });
-            // Print the filtered records
-            for (const school of schoolData) {
-                const coordinates = await getCoordinates(school.address);
-                if (coordinates) {
-                    school.latitude = coordinates.latitude;
-                    school.longitude = coordinates.longitude;
-                }else{
-                    throw new Error('Unknown Error');
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
                 }
-            }
-            console.log(schoolData);
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error);
-          });
+                return response.json();
+            })
+            .then(async data => {
+                // console.log(data);
+
+                // Extract records
+                const records = data.result.records;
+
+                // Filter to keep only school_name and postal_code
+                records.forEach(record => {
+                    schoolData.push({
+                        school_name: record.school_name,
+                        address: record.address,
+                        postal_code: record.postal_code,
+                        level: record.mainlevel_code
+                    });
+                });
+                // Print the filtered records
+                for (const school of schoolData) {
+                    const coordinates = await getCoordinates(school.address);
+                    if (coordinates) {
+                        school.latitude = coordinates.latitude;
+                        school.longitude = coordinates.longitude;
+                    } else {
+                        throw new Error('Unknown Error');
+                    }
+                }
+                console.log(schoolData);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
     }
 
 
@@ -116,7 +133,7 @@ const analytics = getAnalytics(app);
 
     async function getCoordinates(address) {
         const url = `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(address)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`;
-    
+
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -124,7 +141,7 @@ const analytics = getAnalytics(app);
             }
             const resultsDict = await response.json();
             console.log(resultsDict);
-            
+
             if (resultsDict.results.length > 0) {
                 return {
                     latitude: resultsDict.results[0].LATITUDE,
@@ -174,12 +191,12 @@ const analytics = getAnalytics(app);
         return null; // or some default value
     }
 
-    function getListOfAddress(list){
+    function getListOfAddress(list) {
         let listOfAddress = [];
-        for (const item of list){
+        for (const item of list) {
             listOfAddress.add(item.block + " " + item.street_name);
         }
-        
+
         return listOfAddress;
     }
 
@@ -206,11 +223,11 @@ const analytics = getAnalytics(app);
 
                 return uniqueSpecifiedLocations;
             },
-            getListOfCoordinates(uniqueLocationList){
+            getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
 
-                for (const item of listOfAddress){
+                for (const item of listOfAddress) {
                     listOfCoordinates.add(getCoordinates(item));
                 }
                 return listOfCoordinates;
