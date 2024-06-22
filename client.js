@@ -1,5 +1,31 @@
+
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", async function () {
 
+const firebaseConfig = {
+  apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
+  authDomain: "hdbamenities.firebaseapp.com",
+  projectId: "hdbamenities",
+  storageBucket: "hdbamenities.appspot.com",
+  messagingSenderId: "410996522613",
+  appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
+  measurementId: "G-RY5WH9KYXF"
+};
+
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+      firebase.initializeApp(firebaseConfig)
+
+    
     let  HDBinfo;
 
     const schoolData =[];
