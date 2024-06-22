@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", async function () {
 
-    let  HDBinfo,PrimarySchoolData,SecondarySchoolData;
+    let  HDBinfo;
 
+    const schoolData =[];
     const HDBList = [];
     /***********************************************************************/
     // Load Data
@@ -43,7 +44,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         
             // Filter to keep only school_name and postal_code
             records.forEach(record => {
-              arr.push({
+              schoolData.push({
                 school_name: record.school_name,
                 address : record.address,
                 postal_code: record.postal_code,
@@ -184,6 +185,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
     // Method to push amenitites location into an array
+
 
     // Method to compare and push the values in
 
