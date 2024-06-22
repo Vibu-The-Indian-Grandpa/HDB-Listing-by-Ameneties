@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             // Create card element
             let card = document.createElement("div");
             card.classList.add("card");
-
+            
             // Card content
             card.innerHTML = `
                 <h3>${specifiedHDB.flat_type} - ${specifiedHDB.block} ${specifiedHDB.street_name}</h3>
