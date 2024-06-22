@@ -8,27 +8,27 @@ import { getAnalytics } from "firebase/analytics";
 
 document.addEventListener("DOMContentLoaded", async function () {
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
-  authDomain: "hdbamenities.firebaseapp.com",
-  projectId: "hdbamenities",
-  storageBucket: "hdbamenities.appspot.com",
-  messagingSenderId: "410996522613",
-  appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
-  measurementId: "G-RY5WH9KYXF"
-};
+    const firebaseConfig = {
+        apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
+        authDomain: "hdbamenities.firebaseapp.com",
+        projectId: "hdbamenities",
+        storageBucket: "hdbamenities.appspot.com",
+        messagingSenderId: "410996522613",
+        appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
+        measurementId: "G-RY5WH9KYXF"
+    };
 
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
 
-      firebase.initializeApp(firebaseConfig)
+    firebase.initializeApp(firebaseConfig)
 
-    
-    let  HDBinfo;
 
-    const schoolData =[];
+    let HDBinfo;
+
+    const schoolData = [];
     const HDBList = [];
     /***********************************************************************/
     // Load Data
@@ -56,32 +56,32 @@ const analytics = getAnalytics(app);
         const datasetId = "d_688b934f82c1059ed0a6993d2a829089"
         const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
         fetch(url)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Failed to fetch data');
-            }
-            return response.json();
-          })
-          .then(data => {
-            // console.log(data);
-        
-            // Extract records
-            const records = data.result.records;
-        
-            // Filter to keep only school_name and postal_code
-            records.forEach(record => {
-              schoolData.push({
-                school_name: record.school_name,
-                address : record.address,
-                postal_code: record.postal_code,
-                level : record.mainlevel_code
-              });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // console.log(data);
+
+                // Extract records
+                const records = data.result.records;
+
+                // Filter to keep only school_name and postal_code
+                records.forEach(record => {
+                    schoolData.push({
+                        school_name: record.school_name,
+                        address: record.address,
+                        postal_code: record.postal_code,
+                        level: record.mainlevel_code
+                    });
+                });
+                // Print the filtered records
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
             });
-            // Print the filtered records
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error);
-          });
     }
 
 
@@ -106,7 +106,7 @@ const analytics = getAnalytics(app);
 
     async function getCoordinates(address) {
         const url = `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(address)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`;
-    
+
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -114,7 +114,7 @@ const analytics = getAnalytics(app);
             }
             const resultsDict = await response.json();
             console.log(resultsDict);
-            
+
             if (resultsDict.results.length > 0) {
                 return {
                     latitude: resultsDict.results[0].LATITUDE,
@@ -133,12 +133,12 @@ const analytics = getAnalytics(app);
 
     async function getAllData() {
         fetchAllCollections();
-        HDBOption(HDBList);
+        HDBinfo = HDBOption(HDBList);
     };
 
     /******************************************************************************/
 
-    function locationConversion(lo1, la1, lo2, la2, d2r) {
+    function distanceCalculation(lo1, la1, lo2, la2, d2r) {
         const R = 6367; // Radius of the Earth in kilometers
         const dlong = d2r * (lo2 - lo1);
         const dlat = d2r * (la2 - la1);
@@ -161,12 +161,12 @@ const analytics = getAnalytics(app);
         return null; // or some default value
     }
 
-    function getListOfAddress(list){
+    function getListOfAddress(list) {
         let listOfAddress = [];
-        for (const item of list){
+        for (const item of list) {
             listOfAddress.add(item.block + " " + item.street_name);
         }
-        
+
         return listOfAddress;
     }
 
@@ -184,7 +184,7 @@ const analytics = getAnalytics(app);
 
     function HDBOption(data) {
         let LISTS = [...data];
-        const D2R = Math.PI / 180
+        const D2R = Math.PI / 180;
         return {
             ////////////////////////////////
             getSpecifiedHDB(data) {
@@ -193,14 +193,36 @@ const analytics = getAnalytics(app);
 
                 return uniqueSpecifiedLocations;
             },
-            getListOfCoordinates(uniqueLocationList){
+            async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
 
-                for (const item of listOfAddress){
-                    listOfCoordinates.add(getCoordinates(item));
+                for (const item of listOfAddress) {
+                    const coordinates = await getCoordinates(item);
+                    listOfCoordinates.add(coordinates);
                 }
                 return listOfCoordinates;
+            },
+            getListOfDist(specifiedCoordList, amenityCoordList, type) {
+                let leastDistance;
+                let tempDistance;
+                let arrayOfLeastDist = [];
+                let arrayOfamenityCoord = [];
+
+                for (let i = 0; i < specifiedCoordList; i++) {
+                    // loop through all the locations
+                    for (let j = 0; j < amenityCoordList; j++) {
+                        // loop through all the amenity locations
+                        tempDistance = distanceCalculation(specifiedCoordList[0], specifiedCoordList[1], amenityCoordList[0], amenityCoordList[1], D2R);
+                        if (leastDistance > tempDistance) {
+                            leastDistance = tempDistance;
+                            arrayOfamenityCoord = amenityCoordList[j];
+                        }
+                    }
+                    arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
+                }
+
+                return arrayOfLeastDist;
             }
             /////////////////////////////////
         }
@@ -215,62 +237,81 @@ const analytics = getAnalytics(app);
 
     // Method to compare and push the values in
 
-    // Define the custom element
-    customElements.define('custom-card', CustomCard);
-
     //Define the forms and etc
-    const TownForm = document.getElementById("TownForm");
+    const form = document.getElementById("form");
+    const MRTStationCheckbox = document.getElementById("MRTStationCheckbox");
+    const MallCheckbox = document.getElementById("MallCheckbox");
+    const SchoolCheckbox = document.getElementById("SchoolCheckbox");
+
+    // Get slider values
+    const MRTSlider = document.getElementById("MRTSlider").value;
+    const MallRangeSlider = document.getElementById("MallRangeSlider").value;
+    const SchoolRangeSlider = document.getElementById("SchoolRangeSlider").value;
 
     const warningCard = document.getElementById("warningCard");
-    const warningText = document.getElementById("warningText");
-
 
     /***********************************All Callbacks****************************************/
 
-    Form.addEventListener("submit", function (event) {
-        console.log("TownForm.addEventListener");
+    form.addEventListener("submit", function (event) {
+        console.log("Form.addEventListener");
         event.preventDefault();
         //Hides warning card if it was displayed
         warningCard.classList.add("d-none");
 
-
-        let townInput = document.getElementById("town").value;
+        let listOfSchool, listOfMall, listOfMrt, combinedList;
+        let locationInput = document.getElementById("location").value;
         //error handling
-        console.log(townInput)
+        console.log(locationInput)
 
-        let TownsArray = HDBinfo.displayTown();
-        //Split input into an array by filtering spaces and commas
-        let townArrayOfNumbers = townInput.split(/,|\s/).filter(Boolean);
+        let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
 
-        //error handling
-        console.log(townArrayOfNumbers);
+        let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
 
-        let validTowns = [];
+        if (MRTStationCheckbox.checked) {
+            // MRT List
+            // run the function to get mrt
+            // listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMrt);
+        }
 
-        TownsArray.forEach((item) => {
-            townArrayOfNumbers.forEach((number) => {
-                if (item == TownsArray[number - 1]) {
-                    validTowns.push(item);
-                }
-            });
-        });
+        // Example: Check if Mall checkbox is checked
+        if (MallCheckbox.checked) {
+            // MALL LIST
+            // run the function to get mall
+            // listOFMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFMall);
+        }
 
-        if (validTowns.length !== townArrayOfNumbers.length) {
-            warningCard.classList.remove("d-none");
-            warningText.innerText = "Please enter your input in the valid format (i.e. 1, 2, 5 or 1 2 5)";
-        } else {
+        // Example: Check if School checkbox is checked
+        if (SchoolCheckbox.checked) {
+            // SCHOOL LIST
+            // CHECK FOR TYPE OF SCHOOL
+            // run the function to get SCHOOL
+            // listOFSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOFSCHOOL);
+        }
 
-            // This Clears lists and the console.log is for error handling
-            console.log("Clear Lists");
-            const FilteredExtremeList = document.getElementById("filterExtremeList");
-            const FilteredAverageList = document.getElementById("filterAverageList");
-            FilteredExtremeList.innerHTML = '';
-            FilteredAverageList.innerHTML = '';
+        for (let i = 0; i < 10; i++) {
+            // Retrieve the corresponding specified HDB object
+            let specifiedHDB = specifiedList[i]; // Assuming combinedResults is sorted to match specifiedList
 
-            console.log(validTowns);
-            HDBinfo.displayFilterByTown(validTowns);
-            HDBinfo.displayMeanMedianByTownAndFlatType(validTowns);
-        };
-        TownForm.reset();
+            // Create card element
+            let card = document.createElement("div");
+            card.classList.add("card");
+
+            // Card content
+            card.innerHTML = `
+                <h3>${specifiedHDB.flat_type} - ${specifiedHDB.block} ${specifiedHDB.street_name}</h3>
+                <p>Town: ${specifiedHDB.town}</p>
+                <p>Storey Range: ${specifiedHDB.storey_range}</p>
+                <p>Flat Area: ${specifiedHDB.flat_area} sqm</p>
+                <p>Lease Commence Date: ${specifiedHDB.lease_commence_date}</p>
+                <p>Remaining Lease: ${specifiedHDB.remaining_lease} years</p>
+                <p>Resale Price: $${specifiedHDB.resale_price}</p>
+                <p>${amenityName} Distance: ${distance.toFixed(2)} km</p>
+            `;
+
+            // Append card to results container
+            resultsContainer.appendChild(card);
+        }
+
+        form.reset();
     });
 });
