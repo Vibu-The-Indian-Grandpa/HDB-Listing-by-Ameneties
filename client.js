@@ -25,8 +25,10 @@ const analytics = getAnalytics(app);
 
       firebase.initializeApp(firebaseConfig)
 
-    let HDBData, HDBByTown, HDBinfo;
+    
+    let  HDBinfo;
 
+    const schoolData =[];
     const HDBList = [];
     /***********************************************************************/
     // Load Data
@@ -50,6 +52,39 @@ const analytics = getAnalytics(app);
             return null;
         }
     }
+    async function fetchSchoolData() {
+        const datasetId = "d_688b934f82c1059ed0a6993d2a829089"
+        const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
+        fetch(url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch data');
+            }
+            return response.json();
+          })
+          .then(data => {
+            // console.log(data);
+        
+            // Extract records
+            const records = data.result.records;
+        
+            // Filter to keep only school_name and postal_code
+            records.forEach(record => {
+              schoolData.push({
+                school_name: record.school_name,
+                address : record.address,
+                postal_code: record.postal_code,
+                level : record.mainlevel_code
+              });
+            });
+            // Print the filtered records
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+          });
+    }
+
+
 
     async function fetchAllCollections() {
         try {
@@ -69,11 +104,36 @@ const analytics = getAnalytics(app);
         console.log(HDBList);
     }
 
+    async function getCoordinates(address) {
+        const url = `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(address)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`;
+    
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const resultsDict = await response.json();
+            console.log(resultsDict);
+            
+            if (resultsDict.results.length > 0) {
+                return {
+                    latitude: resultsDict.results[0].LATITUDE,
+                    longitude: resultsDict.results[0].LONGITUDE
+                };
+            } else {
+                return null; // or handle the case where no results are found
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            return null; // or handle the error appropriately
+        }
+    }
     /******************************************************************************/
     // async await 
 
     async function getAllData() {
         HDBOption(fetchAllCollections());
+        fetchSchoolData();
     };
 
     /******************************************************************************/
@@ -82,47 +142,82 @@ const analytics = getAnalytics(app);
         const R = 6367; // Radius of the Earth in kilometers
         const dlong = d2r * (lo2 - lo1);
         const dlat = d2r * (la2 - la1);
-      
+
         const a = Math.pow(Math.sin(dlat / 2), 2) +
-                  Math.cos(la1 * d2r) * Math.cos(la2 * d2r) *
-                  Math.pow(Math.sin(dlong / 2), 2);
+            Math.cos(la1 * d2r) * Math.cos(la2 * d2r) *
+            Math.pow(Math.sin(dlong / 2), 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const dist = R * c;
-      
-        return dist;
-      }
 
-      function getTownByLocation(list, location) {
+        return dist;
+    }
+
+    function getTownByLocation(list, location) {
         for (const item of list) {
-          if (item.town === location) {
-            return item;
-          }
+            if (item.town === location) {
+                return item;
+            }
         }
         return null; // or some default value
-      }
+    }
+
+    function getListOfAddress(list){
+        let listOfAddress = [];
+        for (const item of list){
+            listOfAddress.add(item.block + " " + item.street_name);
+        }
+        
+        return listOfAddress;
+    }
+
+    function removeDuplicates(list) {
+        let seen = new Set(); // To track unique concatenated strings
+        return list.filter(item => {
+            let key = `${item.flat_type} ${item.block} ${item.street_name} ${item.flat_model}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                return true; // Keep this item in the filtered array
+            }
+            return false;
+        });
+    }
 
     function HDBOption(data) {
         let LISTS = [...data];
-        const D2R = Math.PI/180
+        const D2R = Math.PI / 180
         return {
+            ////////////////////////////////
             getSpecifiedHDB(data) {
-                  const specifiedLocations = data.map(location => getObjectById(LISTS, location));
+                const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
+                const uniqueSpecifiedLocations = removeDuplicates(specifiedLocations);
 
-                  
+                return uniqueSpecifiedLocations;
+            },
+            getListOfCoordinates(uniqueLocationList){
+                const listOfAddress = getListOfAddress(uniqueSpecifiedLocations);
+                let listOfCoordinates = [];
+
+                for (const item of listOfAddress){
+                    getCoordinates(item);
+                }
+                return [];
+            },
+            getListOfDist(){
+
             }
+            /////////////////////////////////
         }
     };
 
     /******************************************************************************/
     await getAllData();
 
-
-
     // Method to take in the location and push a new set of values into a new array
 
     // Method to convert the location to coordinates
 
     // Method to push amenitites location into an array
+
 
     // Method to compare and push the values in
     // Define the custom element
