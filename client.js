@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
-                console.log(listOfAddress[0]);
+                // console.log(listOfAddress[0]);
                 console.log("listOfCoordinates");
                 
                 for (const item of listOfAddress) {
@@ -238,6 +238,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return listOfCoordinates;
             },
             getListOfDist(specifiedCoordList, amenityCoordList) {
+                let index =0
                 let leastDistance;
                 let tempDistance;
                 let arrayOfLeastDist = [];
@@ -245,19 +246,28 @@ document.addEventListener("DOMContentLoaded", async function () {
         
                 for (let i = 0; i < specifiedCoordList.length; i++) {
                     leastDistance = Infinity;
+                    console.log(specifiedCoordList[i])
                     for (let j = 0; j < amenityCoordList.length; j++) {
                         tempDistance = distanceCalculation(
                             specifiedCoordList[i].longitude, specifiedCoordList[i].latitude,
                             amenityCoordList[j].longitude, amenityCoordList[j].latitude, D2R
                         );
+                        console.log(tempDistance);
                         if (tempDistance < leastDistance) {
+                            index = i;
                             leastDistance = tempDistance;
                             arrayOfamenityCoord = amenityCoordList[j];
                         }
                     }
-                    arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
+                    if(leastDistance > 0 && leastDistance != null){
+                        arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance , specifiedCoordList[index]]);
+
+                    }
+
                 }
-        
+                arrayOfLeastDist.sort((a, b) => a[1] - b[1]);
+                arrayOfLeastDist = arrayOfLeastDist.slice(0, 10);
+                console.log(arrayOfLeastDist[0])
                 return arrayOfLeastDist;
             }
         }
@@ -291,7 +301,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
         let listOfSpecifiedCoord = await HDBinfo.getListOfCoordinates(specifiedList);
-        console.log(listOfSpecifiedCoord)
+        console.log(listOfSpecifiedCoord[0])
         console.log("Hello")
 
         for (let i = 0; i < specifiedList.length; i++) {
