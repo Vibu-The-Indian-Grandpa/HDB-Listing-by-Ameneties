@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
-                console.log(listOfAddress);
+                // console.log(listOfAddress[0]);
                 console.log("listOfCoordinates");
                 
                 for (const item of listOfAddress) {
@@ -300,7 +300,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
         let listOfSpecifiedCoord = await HDBinfo.getListOfCoordinates(specifiedList);
-        console.log(listOfSpecifiedCoord)
+        console.log(listOfSpecifiedCoord[0])
         console.log("Hello")
 
         console.log(listOfSpecifiedCoord)
