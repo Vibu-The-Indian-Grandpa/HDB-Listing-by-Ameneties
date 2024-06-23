@@ -6,7 +6,61 @@
 Card List
 <body>
     <div class="results-container" id="results-container"></div>
-    <script src="client.js"></script>
+    <button type="submit">List HDBs</button>
+
+    </form>
+    <script>         
+    
+    for (let i = 0; i < 10; i++) {
+        let jsonString = localStorage.getItem("combinedList");
+        let combinedList = JSON.parse(jsonString);
+        // Retrieve the corresponding specified HDB object
+
+        // Create card element
+        let card = document.createElement("div");
+        card.classList.add("card");
+        console.log(combinedList)
+
+        // Card content
+        card.innerHTML = `
+            <h3>${combinedList[i][0].flat_type} - ${combinedList[i][0].block} ${combinedList[i][0].street_name}</h3>
+            <p>Town: ${combinedList[i][0].town}</p>
+            <p>Storey Range: ${combinedList[i][0].storey_range}</p>
+            <p>Flat Area: ${combinedList[i][0].flat_area} sqm</p>
+            <p>Lease Commence Date: ${combinedList[i][0].lease_commence_date}</p>
+            <p>Remaining Lease: ${combinedList[i][0].remaining_lease} years</p>
+            <p>Resale Price: $${combinedList[i][0].resale_price}</p>
+        `;
+
+        // Check if MRTStationCheckbox is checked and add MRT info
+        if (combinedList[i][1].length > 0) {
+            cardContent += `<p>MRT Distance: ${combinedList[i][1][0].distance.toFixed(2)} km</p>`;
+        }
+
+        // Check if MallCheckbox is checked and add Mall info
+        if (combinedList[i][2].length > 0) {
+            cardContent += `<p>Mall Distance: ${combinedList[i][2][0].distance.toFixed(2)} km</p>`;
+        }
+
+        // Check if SchoolCheckbox is checked and add School info
+        if (combinedList[i][3].length > 0) {
+            cardContent += `<p>School Distance: ${combinedList[i][3][0].distance.toFixed(2)} km</p>`;
+        }
+
+        if (combinedList[i][4].length > 0) {
+            cardContent += `<p>School Distance: ${combinedList[i][4][0].distance.toFixed(2)} km</p>`;
+        }
+
+        if (combinedList[i][5].length > 0) {
+            cardContent += `<p>School Distance: ${combinedList[i][5][0].distance.toFixed(2)} km</p>`;
+        }
+
+        // Set the inner HTML of the card
+        card.innerHTML = cardContent;
+        // Append card to results container
+        resultsContainer.appendChild(card);
+    }
+    </script>
 </body>
 </body>
 </html>

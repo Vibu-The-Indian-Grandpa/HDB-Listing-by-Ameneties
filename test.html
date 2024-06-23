@@ -17,9 +17,25 @@
             height: 100%;
             width: 100%;
         }
+
+        #backButton {
+            position: absolute;
+            top: 80px;
+            left: 10px;
+            z-index: 1000;
+            padding: 10px 20px;
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div id="map"></div>
+
+    <button id="backButton" onclick="goBack()">Back to Cards</button>
     <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
