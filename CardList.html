@@ -10,10 +10,9 @@ Card List
 
     </form>
     <script>         
-    
+            let jsonString = localStorage.getItem("combinedList");
+            let combinedList = JSON.parse(jsonString);
     for (let i = 0; i < 10; i++) {
-        let jsonString = localStorage.getItem("combinedList");
-        let combinedList = JSON.parse(jsonString);
         // Retrieve the corresponding specified HDB object
 
         // Create card element

@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     let HDBinfo;
 
     const schoolData = [];
-    const HDBList = [];
+    let HDBList = [];
     const MRTList = [];
     const MallList = [];
     /***********************************************************************/
@@ -92,10 +92,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     async function fetchAllRecords() {
         const datasetId = "d_8b84c4ee58e3cfc0ece0d773c8ca6abc";
         const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
-        let arr = [];
         let limit = 1000; // Number of records per page
         let offset = 0; // Starting point
-
+        let arr = [];
         let hasMoreRecords = true;
 
         while (hasMoreRecords) {
@@ -120,9 +119,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                 hasMoreRecords = false;
             }
         }
-
         console.log(arr.length);
         console.log(arr);
+        HDBList = arr;
     }
 
 
@@ -261,18 +260,19 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 
     function getTownByLocation(list, location) {
+        let arry = [];
         for (const item of list) {
             if (item.town === location) {
-                return item;
+                arry.push(item);
             }
         }
-        return null; // or some default value
+        return arry;
     }
 
     function getListOfAddress(list) {
         let listOfAddress = [];
         for (const item of list) {
-            listOfAddress.add(item.block + " " + item.street_name);
+            listOfAddress.push(item.block + " " + item.street_name);
         }
 
         return listOfAddress;
@@ -292,11 +292,13 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     function HDBOption(data) {
         let LISTS = [...data];
+        console.log(LISTS);
         const D2R = Math.PI / 180;
         return {
             ////////////////////////////////
             getSpecifiedHDB(data) {
-                const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
+                const specifiedLocations = getTownByLocation(LISTS, data);
+                console.log(specifiedLocations);
                 const uniqueSpecifiedLocations = removeDuplicates(specifiedLocations);
                 return uniqueSpecifiedLocations;
             },
@@ -305,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 let listOfCoordinates = [];
 
                 for (const item of listOfAddress) {
-                    listOfCoordinates.add(getCoordinates(item));
+                    listOfCoordinates.push(getCoordinates(item));
                 }
                 return listOfCoordinates;
             },
@@ -354,25 +356,17 @@ document.addEventListener("DOMContentLoaded", async function () {
     const Secondary = document.getElementById("SecondaryCheckbox");
     const JuniorCollege = document.getElementById("JCCheckbox");
 
-
-
-    const warningCard = document.getElementById("warningCard");
-
     /***********************************All Callbacks****************************************/
     form.addEventListener("submit", function (event) {
         console.log("Form.addEventListener");
         event.preventDefault();
-        //Hides warning card if it was displayed
-        warningCard.classList.add("d-none");
+    
 
-        let listOfSchool, listofpri, listofsec, listofjc, listOfMall, listOfMrt, combinedList;
+        let listOfSchool = [], listofpri = [], listofsec = [], listofjc = [], listOfMall = [], listOfMrt = [], combinedList = [];
         let locationInput = document.getElementById("location").value;
         //error handlingconsol
         //Correct
         console.log(locationInput)
-        if (typeof locationInput === 'string') {
-            locationInput = [locationInput];
-        }
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
 
@@ -383,7 +377,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             // did it like this so that if one of the check box wasnt ticked, the code would still display without issue
             combinedList.push([[specifiedList[i], listOfSpecifiedCoord[i]], [], [], [], [], []]);
         }
-
+        console.log(combinedList);
         if (MRTStationCheckbox.checked) {
             // MRT List
             // run the function to get mrt
@@ -454,8 +448,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             })
         }
 
-        localStorage.setItem("combinedList", combinedList);
-        localStorage.setItem("testing", "1");
+        let jsonString = JSON.stringify(combinedList);
+        localStorage.setItem("combinedList", jsonString);
+        let jsonString1 = JSON.stringify("1");
+        localStorage.setItem("testing", jsonString1);
         window.location.href = 'CardList.html';
     });
 
