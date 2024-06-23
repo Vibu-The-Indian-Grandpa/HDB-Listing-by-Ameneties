@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             Math.pow(Math.sin(dlong / 2), 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const dist = R * c;
-
+        console.log(dist)
         return dist;
     }
 
@@ -201,15 +201,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     async function HDBOption(data) {
         let LISTS = [...data];
         console.log(LISTS);
-        const D2R = Math.PI / 180;
         return {
             getSpecifiedHDB(data) {
                 const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
                 const uniqueLocationList = removeDuplicates(specifiedLocations.flat());
                 console.log(specifiedLocations);  // Log the specified locations
-                return specifiedLocations;  // Return specified locations without removing duplicates
+                return uniqueLocationList;  // Return specified locations without removing duplicates
             },
-            getListOfCoordinates(uniqueLocationList) {
+            async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
     
@@ -218,18 +217,33 @@ document.addEventListener("DOMContentLoaded", async function () {
                 }
                 return listOfCoordinates;
             },
-            getListOfDist(specifiedCoordList, amenityCoordList) {
+            async getListOfDist(specifiedCoordList, amenityCoordList, type) {
                 let leastDistance;
                 let tempDistance;
                 let arrayOfLeastDist = [];
                 let arrayOfamenityCoord = [];
-    
+                let transformedList = [];
+                const D2R = Math.PI / 180;
+
+                if(type == "train"){
+                    transformedList = amenityCoordList.map(item => ({
+                        latitude: item.lat,
+                        longitude: item.lng,
+                        stationName: item.station_name,
+                        type: item.type
+                    }));
+                    console.log(...transformedList);
+                    MRTList.push(...transformedList);
+                }
+                console.log(amenityCoordList)
                 for (let i = 0; i < specifiedCoordList.length; i++) {
-                    leastDistance = Infinity;
+
                     for (let j = 0; j < amenityCoordList.length; j++) {
+                        console.log(specifiedCoordList[i].latitude)
+                        console.log(transformedList[j].latitude)
                         tempDistance = distanceCalculation(
-                            specifiedCoordList[i].longitude, specifiedCoordList[i].latitude,
-                            amenityCoordList[j].longitude, amenityCoordList[j].latitude, D2R
+                            parseInt(specifiedCoordList[i].latitude), parseInt(specifiedCoordList[i].longitude),
+                            parseInt(transformedList[j].latitude), parseInt(transformedList[j].longitude), D2R
                         );
                         if (tempDistance < leastDistance) {
                             leastDistance = tempDistance;
@@ -238,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                     arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
                 }
-    
+                console.log(arrayOfLeastDist);
                 return arrayOfLeastDist;
             }
         }
@@ -255,8 +269,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const Secondary = document.getElementById("SecondaryCheckbox");
     const JuniorCollege = document.getElementById("JCCheckbox");
 
-    const warningCard = document.getElementById("warningCard");
-
     form.addEventListener("submit", function (event) {
         console.log("Form.addEventListener");
         event.preventDefault();
@@ -271,14 +283,15 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
-        let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
+        let listOfSpecifiedCoord =  HDBinfo.getListOfCoordinates(specifiedList);
 
+        console.log(listOfSpecifiedCoord)
         for (let i = 0; i < specifiedList.length; i++) {
             combinedList.push([[specifiedList[i], listOfSpecifiedCoord[i]], [], [], [], [], []]);
         }
         console.log(combinedList);
         if (MRTStationCheckbox.checked) {
-            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList);
+            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList, "train");
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][1].push(listOfMrt[i]);
             }
@@ -326,6 +339,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         localStorage.setItem("combinedList", JSON.stringify(combinedList));
 
-        // window.location.href = 'MapPage.html';
+        // window.location.href = 'CardList.html';  
     });
 });
