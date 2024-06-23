@@ -8,6 +8,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
+    localStorage.clear();
     const firebaseConfig = {
         apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
         authDomain: "hdbamenities.firebaseapp.com",
@@ -27,7 +28,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         try {
             const snapshot = await get(child(dbRef, `MRT`));
             if (snapshot.exists()) {
-                MRTList.push(...snapshot.val());
+                let transformedList = snapshot.val().map(item => ({
+                    latitude: item.lat,
+                    longitude: item.lng,
+                    stationName: item.station_name,
+                    type: item.type
+                }));
+                MRTList.push(...transformedList);
             } else {
                 console.log("No data available");
             }
@@ -42,13 +49,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         try {
             const snapshot = await get(child(dbRef, `Shopping Mall`));
             if (snapshot.exists()) {
-                MallList.push(...snapshot.val());
+                let transformedList = snapshot.val().map(item => ({
+                    latitude: item.LATITUDE,
+                    longitude: item.LONGITUDE,
+                    mallName: item["Mall Name"],
+                    type: item.type
+                }));
+                MallList.push(...transformedList);
+            
             } else {
                 console.log("No data available");
             }
         } catch (error) {
             console.error(error);
         }
+        console.log(MallList[1])
         console.log("Mall Data fetched successfully");
     }
 
@@ -67,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         let arr = [];
         let hasMoreRecords = true;
 
-        while (offset < 10000) {
+        while (offset < 1000) {
             let paginatedUrl = `${url}&limit=${limit}&offset=${offset}`;
 
             try {
@@ -178,8 +193,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
 
-    function getListOfAddress(list) {
+    function getListOfAddress(data) {
         let listOfAddress = [];
+        let list = data[0];
+        console.log(list)
         for (const item of list) {
             listOfAddress.push(item.block + " " + item.street_name);
         }
@@ -189,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     function removeDuplicates(list) {
         let seen = new Set();
         return list.filter(item => {
-            let key = `${item.flat_type} ${item.block} ${item.street_name}`;
+            let key = `${item.block} ${item.street_name}`;
             if (!seen.has(key)) {
                 seen.add(key);
                 return true;
@@ -201,20 +218,23 @@ document.addEventListener("DOMContentLoaded", async function () {
     async function HDBOption(data) {
         let LISTS = [...data];
         const D2R = Math.PI / 180;
+        
         return {
             getSpecifiedHDB(data) {
                 const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
-                const uniqueLocationList = removeDuplicates(specifiedLocations.flat());
-                console.log(specifiedLocations);  // Log the specified locations
+                const uniqueLocationList = removeDuplicates(specifiedLocations);
                 return specifiedLocations;  // Return specified locations without removing duplicates
             },
-            getListOfCoordinates(uniqueLocationList) {
+            async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
-    
+                console.log(listOfAddress[0]);
+                console.log("listOfCoordinates");
+                
                 for (const item of listOfAddress) {
-                    listOfCoordinates.push(getCoordinates(item));
+                    listOfCoordinates.push(await getCoordinates(item));
                 }
+                
                 return listOfCoordinates;
             },
             getListOfDist(specifiedCoordList, amenityCoordList) {
@@ -222,7 +242,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 let tempDistance;
                 let arrayOfLeastDist = [];
                 let arrayOfamenityCoord = [];
-    
+        
                 for (let i = 0; i < specifiedCoordList.length; i++) {
                     leastDistance = Infinity;
                     for (let j = 0; j < amenityCoordList.length; j++) {
@@ -237,7 +257,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     }
                     arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
                 }
-    
+        
                 return arrayOfLeastDist;
             }
         }
@@ -256,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     const warningCard = document.getElementById("warningCard");
 
-    form.addEventListener("submit", function (event) {
+    form.addEventListener("submit",async function (event) {
         console.log("Form.addEventListener");
         event.preventDefault();
         // warningCard.classList.add("d-none");
@@ -270,7 +290,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
-        let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
+        let listOfSpecifiedCoord = await HDBinfo.getListOfCoordinates(specifiedList);
+        console.log(listOfSpecifiedCoord)
+        console.log("Hello")
 
         for (let i = 0; i < specifiedList.length; i++) {
             combinedList.push([[specifiedList[i], listOfSpecifiedCoord[i]], [], [], [], [], []]);
@@ -322,9 +344,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             return sumB - sumA;
         });
-
+        console.log(combinedList);
         localStorage.setItem("combinedList", JSON.stringify(combinedList));
-
         // window.location.href = 'MapPage.html';
     });
 });
