@@ -8,6 +8,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
+    localStorage.clear();
     const firebaseConfig = {
         apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
         authDomain: "hdbamenities.firebaseapp.com",
@@ -27,7 +28,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         try {
             const snapshot = await get(child(dbRef, `MRT`));
             if (snapshot.exists()) {
-                MRTList.push(...snapshot.val());
+                let transformedList = snapshot.val().map(item => ({
+                    latitude: item.lat,
+                    longitude: item.lng,
+                    stationName: item.station_name,
+                    type: item.type
+                }));
+                MRTList.push(...transformedList);
             } else {
                 console.log("No data available");
             }
@@ -42,13 +49,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         try {
             const snapshot = await get(child(dbRef, `Shopping Mall`));
             if (snapshot.exists()) {
-                MallList.push(...snapshot.val());
+                let transformedList = snapshot.val().map(item => ({
+                    latitude: item.LATITUDE,
+                    longitude: item.LONGITUDE,
+                    mallName: item["Mall Name"],
+                    type: item.type
+                }));
+                MallList.push(...transformedList);
+            
             } else {
                 console.log("No data available");
             }
         } catch (error) {
             console.error(error);
         }
+        console.log(MallList[1])
         console.log("Mall Data fetched successfully");
     }
 
@@ -67,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         let arr = [];
         let hasMoreRecords = true;
 
-        while (offset < 10000) {
+        while (offset < 1000) {
             let paginatedUrl = `${url}&limit=${limit}&offset=${offset}`;
 
             try {
@@ -163,7 +178,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         const R = 6367;
         const dlong = d2r * (lo2 - lo1);
         const dlat = d2r * (la2 - la1);
-
+        console.log(lo1)
+        console.log(la1)
+        console.log(lo2)
+        console.log(la2)
         const a = Math.pow(Math.sin(dlat / 2), 2) +
             Math.cos(la1 * d2r) * Math.cos(la2 * d2r) *
             Math.pow(Math.sin(dlong / 2), 2);
@@ -178,8 +196,10 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
     
 
-    function getListOfAddress(list) {
+    function getListOfAddress(data) {
         let listOfAddress = [];
+        let list = data[0];
+        console.log(list)
         for (const item of list) {
             listOfAddress.push(item.block + " " + item.street_name);
         }
@@ -189,7 +209,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     function removeDuplicates(list) {
         let seen = new Set();
         return list.filter(item => {
-            let key = `${item.flat_type} ${item.block} ${item.street_name}`;
+            let key = `${item.block} ${item.street_name}`;
             if (!seen.has(key)) {
                 seen.add(key);
                 return true;
@@ -200,59 +220,53 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     async function HDBOption(data) {
         let LISTS = [...data];
-        console.log(LISTS);
+        const D2R = Math.PI / 180;
+        
         return {
             getSpecifiedHDB(data) {
                 const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
-                const uniqueLocationList = removeDuplicates(specifiedLocations.flat());
-                console.log(specifiedLocations);  // Log the specified locations
+                const uniqueLocationList = removeDuplicates(specifiedLocations);
                 return uniqueLocationList;  // Return specified locations without removing duplicates
             },
             async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
-    
+                console.log(listOfAddress);
+                console.log("listOfCoordinates");
+                
                 for (const item of listOfAddress) {
-                    listOfCoordinates.push(getCoordinates(item));
+                    listOfCoordinates.push(await getCoordinates(item));
                 }
+                
                 return listOfCoordinates;
             },
-            async getListOfDist(specifiedCoordList, amenityCoordList, type) {
-                let leastDistance;
-                let tempDistance;
+            async getListOfDist(specifiedCoordList, amenityCoordList) {
+                let leastDistance = Infinity;
+                let tempDistance = 0;
                 let arrayOfLeastDist = [];
                 let arrayOfamenityCoord = [];
-                let transformedList = [];
-                const D2R = Math.PI / 180;
-
-                if(type == "train"){
-                    transformedList = amenityCoordList.map(item => ({
-                        latitude: item.lat,
-                        longitude: item.lng,
-                        stationName: item.station_name,
-                        type: item.type
-                    }));
-                    console.log(...transformedList);
-                    MRTList.push(...transformedList);
-                }
-                console.log(amenityCoordList)
+                let tempArray = [];
+                
                 for (let i = 0; i < specifiedCoordList.length; i++) {
 
                     for (let j = 0; j < amenityCoordList.length; j++) {
                         console.log(specifiedCoordList[i].latitude)
-                        console.log(transformedList[j].latitude)
+                        console.log(amenityCoordList[j].latitude)
                         tempDistance = distanceCalculation(
-                            parseInt(specifiedCoordList[i].latitude), parseInt(specifiedCoordList[i].longitude),
-                            parseInt(transformedList[j].latitude), parseInt(transformedList[j].longitude), D2R
+                            parseFloat(specifiedCoordList[i].latitude), parseFloat(specifiedCoordList[i].longitude),
+                            amenityCoordList[j].latitude, amenityCoordList[j].longitude, D2R
                         );
-                        if (tempDistance < leastDistance) {
-                            leastDistance = tempDistance;
+                        console.log(leastDistance)
+                        if (tempDistance > leastDistance) {
+                            tempDistance = leastDistance;
                             arrayOfamenityCoord = amenityCoordList[j];
+                            tempArray = [arrayOfamenityCoord[j], leastDistance];
+                            console.log(tempArray);
                         }
                     }
-                    arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
+                    arrayOfLeastDist.push(tempArray);
                 }
-                console.log(arrayOfLeastDist);
+        
                 return arrayOfLeastDist;
             }
         }
@@ -269,12 +283,14 @@ document.addEventListener("DOMContentLoaded", async function () {
     const Secondary = document.getElementById("SecondaryCheckbox");
     const JuniorCollege = document.getElementById("JCCheckbox");
 
-    form.addEventListener("submit", function (event) {
+    const warningCard = document.getElementById("warningCard");
+
+    form.addEventListener("submit",async function (event) {
         console.log("Form.addEventListener");
         event.preventDefault();
         // warningCard.classList.add("d-none");
 
-        let listOfSchool, listofpri, listofsec, listofjc, listOfMall, listOfMrt;
+        let listOfSchool = [], listofpri = [], listofsec = [], listofjc = [], listOfMall = [], listOfMrt = [];
         var combinedList = [];
         let locationInput = document.getElementById("location").value;
 
@@ -283,7 +299,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
-        let listOfSpecifiedCoord =  HDBinfo.getListOfCoordinates(specifiedList);
+        let listOfSpecifiedCoord = await HDBinfo.getListOfCoordinates(specifiedList);
+        console.log(listOfSpecifiedCoord)
+        console.log("Hello")
 
         console.log(listOfSpecifiedCoord)
         for (let i = 0; i < specifiedList.length; i++) {
@@ -291,8 +309,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
         console.log(combinedList);
         if (MRTStationCheckbox.checked) {
-            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList, "train");
+            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList);
             for (let i = 0; i < specifiedList.length; i++) {
+                console.log(listOfMrt);
                 combinedList[i][1].push(listOfMrt[i]);
             }
         }
@@ -336,9 +355,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             return sumB - sumA;
         });
-
+        console.log(combinedList);
         localStorage.setItem("combinedList", JSON.stringify(combinedList));
-
-        // window.location.href = 'CardList.html';  
+        // window.location.href = 'MapPage.html';
     });
 });
