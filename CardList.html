@@ -1,65 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Card List</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-Card List
 <body>
+    <h1>Card List</h1>
     <div class="results-container" id="results-container"></div>
-    <button type="submit">List HDBs</button>
 
-    </form>
-    <script>         
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
             let jsonString = localStorage.getItem("combinedList");
+            if (!jsonString) {
+                console.error("No combinedList found in localStorage");
+                return;
+            }
+
             let combinedList = JSON.parse(jsonString);
-    for (let i = 0; i < 10; i++) {
-        // Retrieve the corresponding specified HDB object
+            let resultsContainer = document.getElementById("results-container");
 
-        // Create card element
-        let card = document.createElement("div");
-        card.classList.add("card");
-        console.log(combinedList)
+            for (let i = 0; i < Math.min(10, combinedList.length); i++) {
+                // Retrieve the corresponding specified HDB object
+                let hdb = combinedList[i][0][0];
+                if (!hdb) continue;
 
-        // Card content
-        card.innerHTML = `
-            <h3>${combinedList[i][0].flat_type} - ${combinedList[i][0].block} ${combinedList[i][0].street_name}</h3>
-            <p>Town: ${combinedList[i][0].town}</p>
-            <p>Storey Range: ${combinedList[i][0].storey_range}</p>
-            <p>Flat Area: ${combinedList[i][0].flat_area} sqm</p>
-            <p>Lease Commence Date: ${combinedList[i][0].lease_commence_date}</p>
-            <p>Remaining Lease: ${combinedList[i][0].remaining_lease} years</p>
-            <p>Resale Price: $${combinedList[i][0].resale_price}</p>
-        `;
+                // Create card element
+                let card = document.createElement("div");
+                card.classList.add("card");
 
-        // Check if MRTStationCheckbox is checked and add MRT info
-        if (combinedList[i][1].length > 0) {
-            cardContent += `<p>MRT Distance: ${combinedList[i][1][0].distance.toFixed(2)} km</p>`;
-        }
+                // Initialize card content
+                let cardContent = `
+                    <h3>${hdb.flat_type} - ${hdb.block} ${hdb.street_name}</h3>
+                    <p>Town: ${hdb.town}</p>
+                    <p>Storey Range: ${hdb.storey_range}</p>
+                    <p>Flat Area: ${hdb.flat_area} sqm</p>
+                    <p>Lease Commence Date: ${hdb.lease_commence_date}</p>
+                    <p>Remaining Lease: ${hdb.remaining_lease} years</p>
+                    <p>Resale Price: $${hdb.resale_price}</p>
+                `;
 
-        // Check if MallCheckbox is checked and add Mall info
-        if (combinedList[i][2].length > 0) {
-            cardContent += `<p>Mall Distance: ${combinedList[i][2][0].distance.toFixed(2)} km</p>`;
-        }
+                // Check if MRT info is available and add it
+                if (combinedList[i][1].length > 0) {
+                    cardContent += `<p>MRT Distance: ${combinedList[i][1][0][1].toFixed(2)} km</p>`;
+                }
 
-        // Check if SchoolCheckbox is checked and add School info
-        if (combinedList[i][3].length > 0) {
-            cardContent += `<p>School Distance: ${combinedList[i][3][0].distance.toFixed(2)} km</p>`;
-        }
+                // Check if Mall info is available and add it
+                if (combinedList[i][2].length > 0) {
+                    cardContent += `<p>Mall Distance: ${combinedList[i][2][0][1].toFixed(2)} km</p>`;
+                }
 
-        if (combinedList[i][4].length > 0) {
-            cardContent += `<p>School Distance: ${combinedList[i][4][0].distance.toFixed(2)} km</p>`;
-        }
+                // Check if Primary School info is available and add it
+                if (combinedList[i][3].length > 0) {
+                    cardContent += `<p>Primary School Distance: ${combinedList[i][3][0][1].toFixed(2)} km</p>`;
+                }
 
-        if (combinedList[i][5].length > 0) {
-            cardContent += `<p>School Distance: ${combinedList[i][5][0].distance.toFixed(2)} km</p>`;
-        }
+                // Check if Secondary School info is available and add it
+                if (combinedList[i][4].length > 0) {
+                    cardContent += `<p>Secondary School Distance: ${combinedList[i][4][0][1].toFixed(2)} km</p>`;
+                }
 
-        // Set the inner HTML of the card
-        card.innerHTML = cardContent;
-        // Append card to results container
-        resultsContainer.appendChild(card);
-    }
+                // Check if Junior College info is available and add it
+                if (combinedList[i][5].length > 0) {
+                    cardContent += `<p>Junior College Distance: ${combinedList[i][5][0][1].toFixed(2)} km</p>`;
+                }
+
+                // Set the inner HTML of the card
+                card.innerHTML = cardContent;
+
+                // Append card to results container
+                resultsContainer.appendChild(card);
+            }
+        });
     </script>
-</body>
 </body>
 </html>
