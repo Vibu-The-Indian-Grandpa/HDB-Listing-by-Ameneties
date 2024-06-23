@@ -355,7 +355,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (SchoolCheckbox.checked && combinedList[i][3].length > 0) {
                 cardContent += `<p>School Distance: ${combinedList[i][3][0].distance.toFixed(2)} km</p>`;
             }
-
+//
             // Set the inner HTML of the card
             card.innerHTML = cardContent;
             // Append card to results container
