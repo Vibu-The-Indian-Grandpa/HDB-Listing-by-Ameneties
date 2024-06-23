@@ -8,8 +8,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
-
-    // Your Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyA6U-AwHL4fSOnmqjEVo1lU8rFWDhPuFDY",
         authDomain: "hdbamenities.firebaseapp.com",
@@ -20,85 +18,56 @@ document.addEventListener("DOMContentLoaded", async function () {
         appId: "1:410996522613:web:1193bc1b3df1b50e93423c",
         measurementId: "G-RY5WH9KYXF"
     };
-    // Initialize Firebase
+
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
     async function fetchMRTData() {
-        // Example usage
         const dbRef = ref(getDatabase());
-        get(child(dbRef, `MRT`)).then((snapshot) => {
+        try {
+            const snapshot = await get(child(dbRef, `MRT`));
             if (snapshot.exists()) {
+                MRTList.push(...snapshot.val());
             } else {
                 console.log("No data available");
             }
-        }).catch((error) => {
+        } catch (error) {
             console.error(error);
-        }).finally(() => {
-            console.log("Data fetched successfully");
-        });
-
+        }
+        console.log("MRT Data fetched successfully");
     }
+
     async function fetchMallData() {
-        // Example usage
         const dbRef = ref(getDatabase());
-        get(child(dbRef, `Shopping Mall`)).then((snapshot) => {
+        try {
+            const snapshot = await get(child(dbRef, `Shopping Mall`));
             if (snapshot.exists()) {
                 MallList.push(...snapshot.val());
             } else {
                 console.log("No data available");
             }
-        }).catch((error) => {
+        } catch (error) {
             console.error(error);
-        }).finally(() => {
-            console.log("Data fetched successfully");
-        });
-
+        }
+        console.log("Mall Data fetched successfully");
     }
 
-
-
     let HDBinfo;
-
     const schoolData = [];
     const HDBList = [];
     const MRTList = [];
     const MallList = [];
-    /***********************************************************************/
-    // Load Data
-    // Fetch data get and post
-
-    let collectionId = 1; // Starting collection ID
-
-    // async function fetchCollectionData(collectionId) {
-    //     const url = `https://api-production.data.gov.sg/v2/public/api/collections/${collectionId}/metadata`;
-
-    //     try {
-    //         const response = await fetch(url);
-    //         if (!response.ok) {
-    //             console.error(`Failed to fetch data for collection ID ${collectionId}`);
-    //             return null;
-    //         }
-    //         const data = await response.json();
-    //         console.log(`Fetched data for collection ID ${collectionId}`);
-    //         return data;
-
-    //     } catch (error) {
-    //         console.error(`Error fetching data for collection ID ${collectionId}:`, error);
-    //         return null;
-    //     }
-    // }
 
     async function fetchAllRecords() {
         const datasetId = "d_8b84c4ee58e3cfc0ece0d773c8ca6abc";
         const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
-        let arr = [];
-        let limit = 1000; // Number of records per page
-        let offset = 0; // Starting point
 
+        let limit = 1000;
+        let offset = 0;
+        let arr = [];
         let hasMoreRecords = true;
 
-        while (hasMoreRecords) {
+        while (offset < 10000) {
             let paginatedUrl = `${url}&limit=${limit}&offset=${offset}`;
 
             try {
@@ -111,26 +80,22 @@ document.addEventListener("DOMContentLoaded", async function () {
                 if (data.result.records.length > 0) {
                     arr = arr.concat(data.result.records);
                     console.log(offset);
-                    offset += limit; // Move to the next set of records
+                    offset += limit;
                 } else {
-                    hasMoreRecords = false; // No more records to fetch
+                    hasMoreRecords = false;
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
                 hasMoreRecords = false;
             }
         }
-
-        console.log(arr.length);
-        console.log(arr);
+        HDBList.push(...arr);
+        console.log("HDB Data fetched successfully");
+        console.log(HDBList);
     }
 
-
-
-
-
     async function fetchSchoolData() {
-        const datasetId = "d_688b934f82c1059ed0a6993d2a829089"
+        const datasetId = "d_688b934f82c1059ed0a6993d2a829089";
         const url = "https://data.gov.sg/api/action/datastore_search?resource_id=" + datasetId;
         fetch(url)
             .then(response => {
@@ -140,12 +105,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 return response.json();
             })
             .then(async data => {
-                // console.log(data);
-
-                // Extract records
                 const records = data.result.records;
-
-                // Filter to keep only school_name and postal_code
                 records.forEach(record => {
                     schoolData.push({
                         school_name: record.school_name,
@@ -154,7 +114,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                         level: record.mainlevel_code
                     });
                 });
-                // Print the filtered records
                 for (const school of schoolData) {
                     const coordinates = await getCoordinates(school.address);
                     if (coordinates) {
@@ -170,83 +129,38 @@ document.addEventListener("DOMContentLoaded", async function () {
             });
     }
 
-
-
-    // async function fetchAllCollections() {
-    //     const batchSize = 10; // Adjust batch size as needed
-    //     let collectionId = 1;
-    //     let hasData = true;
-
-    //     while (hasData) {
-    //         let collectionPromises = [];
-
-    //         for (let i = 0; i < batchSize; i++) {
-    //             collectionPromises.push(fetchCollectionData(collectionId + i));
-    //         }
-
-    //         try {
-    //             const collectionsData = await Promise.all(collectionPromises);
-    //             hasData = false;
-
-    //             collectionsData.forEach(data => {
-    //                 if (data) {
-    //                     HDBList.push(data);
-    //                     hasData = true; // Set to true if at least one collection has data
-    //                 }
-    //             });
-
-    //             collectionId += batchSize;
-    //         } catch (error) {
-    //             console.error('Error fetching collections:', error);
-    //             break;
-    //         }
-    //     }
-
-    //     console.log(HDBList);
-    // }
-
     async function getCoordinates(address) {
         const url = `https://www.onemap.gov.sg/api/common/elastic/search?searchVal=${encodeURIComponent(address)}&returnGeom=Y&getAddrDetails=Y&pageNum=1`;
-
         try {
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
             const resultsDict = await response.json();
-            // console.log(resultsDict);
-
             if (resultsDict.results.length > 0) {
                 return {
                     latitude: resultsDict.results[0].LATITUDE,
                     longitude: resultsDict.results[0].LONGITUDE
                 };
             } else {
-                return null; // or handle the case where no results are found
+                return null;
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            return null; // or handle the error appropriately
+            return null;
         }
     }
 
-
-    /******************************************************************************/
-    // async await 
-
     async function getAllData() {
-        // await fetchAllCollections();
         await fetchAllRecords();
         await fetchSchoolData();
-        HDBinfo = HDBOption(HDBList);
+        HDBinfo =await HDBOption(HDBList);
         await fetchMRTData();
         await fetchMallData();
-    };
-
-    /******************************************************************************/
+    }
 
     function distanceCalculation(lo1, la1, lo2, la2, d2r) {
-        const R = 6367; // Radius of the Earth in kilometers
+        const R = 6367;
         const dlong = d2r * (lo2 - lo1);
         const dlat = d2r * (la2 - la1);
 
@@ -259,53 +173,47 @@ document.addEventListener("DOMContentLoaded", async function () {
         return dist;
     }
 
-
     function getTownByLocation(list, location) {
-        for (const item of list) {
-            if (item.town === location) {
-                return item;
-            }
-        }
-        return null; // or some default value
+        return list.filter(item => item.town === location);
     }
+    
 
     function getListOfAddress(list) {
         let listOfAddress = [];
         for (const item of list) {
-            listOfAddress.add(item.block + " " + item.street_name);
+            listOfAddress.push(item.block + " " + item.street_name);
         }
-
         return listOfAddress;
     }
 
     function removeDuplicates(list) {
-        let seen = new Set(); // To track unique concatenated strings
+        let seen = new Set();
         return list.filter(item => {
             let key = `${item.flat_type} ${item.block} ${item.street_name}`;
             if (!seen.has(key)) {
                 seen.add(key);
-                return true; // Keep this item in the filtered array
+                return true;
             }
             return false;
         });
     }
 
-    function HDBOption(data) {
+    async function HDBOption(data) {
         let LISTS = [...data];
         const D2R = Math.PI / 180;
         return {
-            ////////////////////////////////
             getSpecifiedHDB(data) {
                 const specifiedLocations = data.map(location => getTownByLocation(LISTS, location));
-                const uniqueSpecifiedLocations = removeDuplicates(specifiedLocations);
-                return uniqueSpecifiedLocations;
+                const uniqueLocationList = removeDuplicates(specifiedLocations.flat());
+                console.log(specifiedLocations);  // Log the specified locations
+                return specifiedLocations;  // Return specified locations without removing duplicates
             },
             getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
-
+    
                 for (const item of listOfAddress) {
-                    listOfCoordinates.add(getCoordinates(item));
+                    listOfCoordinates.push(getCoordinates(item));
                 }
                 return listOfCoordinates;
             },
@@ -314,38 +222,30 @@ document.addEventListener("DOMContentLoaded", async function () {
                 let tempDistance;
                 let arrayOfLeastDist = [];
                 let arrayOfamenityCoord = [];
-
-                for (let i = 0; i < specifiedCoordList; i++) {
-                    // loop through all the locations
-                    for (let j = 0; j < amenityCoordList; j++) {
-                        // loop through all the amenity locations
-                        tempDistance = distanceCalculation(specifiedCoordList[0], specifiedCoordList[1], amenityCoordList[0], amenityCoordList[1], D2R);
-                        if (leastDistance > tempDistance) {
+    
+                for (let i = 0; i < specifiedCoordList.length; i++) {
+                    leastDistance = Infinity;
+                    for (let j = 0; j < amenityCoordList.length; j++) {
+                        tempDistance = distanceCalculation(
+                            specifiedCoordList[i].longitude, specifiedCoordList[i].latitude,
+                            amenityCoordList[j].longitude, amenityCoordList[j].latitude, D2R
+                        );
+                        if (tempDistance < leastDistance) {
                             leastDistance = tempDistance;
                             arrayOfamenityCoord = amenityCoordList[j];
                         }
                     }
                     arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
                 }
-
+    
                 return arrayOfLeastDist;
             }
-            /////////////////////////////////
         }
-    };
+    }
+    
 
-
-
-
-    /******************************************************************************/
     await getAllData();
 
-
-    // Method to push amenitites location into an array
-
-
-    // Method to compare and push the values in
-    //Define the forms and etc
     var form = document.querySelector("form");
     const MRTStationCheckbox = document.getElementById("MRTStationCheckbox");
     const MallCheckbox = document.getElementById("MallCheckbox");
@@ -354,111 +254,77 @@ document.addEventListener("DOMContentLoaded", async function () {
     const Secondary = document.getElementById("SecondaryCheckbox");
     const JuniorCollege = document.getElementById("JCCheckbox");
 
-
-
     const warningCard = document.getElementById("warningCard");
 
-    /***********************************All Callbacks****************************************/
     form.addEventListener("submit", function (event) {
         console.log("Form.addEventListener");
         event.preventDefault();
-        //Hides warning card if it was displayed
-        warningCard.classList.add("d-none");
+        // warningCard.classList.add("d-none");
 
-        let listOfSchool, listofpri, listofsec, listofjc, listOfMall, listOfMrt, combinedList;
+        let listOfSchool, listofpri, listofsec, listofjc, listOfMall, listOfMrt;
+        var combinedList = [];
         let locationInput = document.getElementById("location").value;
-        //error handlingconsol
-        //Correct
-        console.log(locationInput)
+
         if (typeof locationInput === 'string') {
             locationInput = [locationInput];
         }
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
-
         let listOfSpecifiedCoord = HDBinfo.getListOfCoordinates(specifiedList);
 
-
-        for (let i = 0; i < specifiedList; i++) {
-            // did it like this so that if one of the check box wasnt ticked, the code would still display without issue
+        for (let i = 0; i < specifiedList.length; i++) {
             combinedList.push([[specifiedList[i], listOfSpecifiedCoord[i]], [], [], [], [], []]);
         }
 
         if (MRTStationCheckbox.checked) {
-            // MRT List
-            // run the function to get mrt
-            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOfMrt);
-            //rmb to add the details
+            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList);
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][1].push(listOfMrt[i]);
             }
-
         }
 
-        // Example: Check if Mall checkbox is checked
         if (MallCheckbox.checked) {
-            // MALL LIST
-            // run the function to get mall
-            listOfMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOfMall);
+            listOfMall = HDBinfo.getListOfDist(listOfSpecifiedCoord, MallList);
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][2].push(listOfMall[i]);
             }
         }
 
-        // Example: Check if School checkbox is checked
         if (Primary.checked) {
-            // SCHOOL LIST
-            // CHECK FOR TYPE OF SCHOOL
-
-            // run the function to get SCHOOL
-            listOfSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOfSchool);
-            listofpri = listOfSchool.filter(school => school.mainlevel_code == "PRIMARY")
+            listOfSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, schoolData);
+            listofpri = listOfSchool.filter(school => school.level === "PRIMARY")
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][3].push(listofpri[i]);
             }
         }
 
         if (Secondary.checked) {
-            // SCHOOL LIST
-            // CHECK FOR TYPE OF SCHOOL
-            // run the function to get SCHOOL
-            listOfSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOfSchool);
-            listofsec = listOfSchool.filter(school => school.mainlevel_code == "SECONDARY")
+            listOfSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, schoolData);
+            listofsec = listOfSchool.filter(school => school.level === "SECONDARY")
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][4].push(listofsec[i]);
             }
         }
 
         if (JuniorCollege.checked) {
-            // SCHOOL LIST
-            // CHECK FOR TYPE OF SCHOOL
-            // run the function to get SCHOOL
-            listOfSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, listOfSchool);
-            listofjc = listOfSchool.filter(school => school.mainlevel_code == "JUNIOR COLLEGE")
+            listOfSchool = HDBinfo.getListOfDist(listOfSpecifiedCoord, schoolData);
+            listofjc = listOfSchool.filter(school => school.level === "JUNIOR COLLEGE")
             for (let i = 0; i < specifiedList.length; i++) {
                 combinedList[i][5].push(listofjc[i]);
             }
         }
 
-        // [[[hdblist[i], hdbcoord[i]], [{latiude: 0, altidude: 0}, value: 10}], [{coords: [2, 2], value: 20}], [{coords: [3, 3], value: 30}]],[[hdblist[j]], [{coords: [4, 4], value: 5}], [{coords: [5, 5], value: 15}], [{coords: [6, 6], value: 25}]],...]
-        for (let i = 0; i < specifiedList.length; i++) {
-            combinedList.sort((a,b) => {
-                const getValue = (subarray) => subarray.length > 0 ? subarray[1] : 0;
+        combinedList.sort((a, b) => {
+            const getValue = (subarray) => subarray.length > 0 ? subarray[1] : 0;
 
-                // Calculate the sum of values for a and b
-                let sumA = getValue(a[1]) + getValue(a[2]) + getValue(a[3]);
-                let sumB = getValue(b[1]) + getValue(b[2]) + getValue(b[3]);
-            
+            let sumA = getValue(a[1]) + getValue(a[2]) + getValue(a[3]);
+            let sumB = getValue(b[1]) + getValue(b[2]) + getValue(b[3]);
 
-                return sumB - sumA;
-            })
-        }
+            return sumB - sumA;
+        });
 
-        localStorage.setItem("combinedList", combinedList);
-        localStorage.setItem("testing", "1");
-        window.location.href = 'CardList.html';
+        localStorage.setItem("combinedList", JSON.stringify(combinedList));
+
+        // window.location.href = 'MapPage.html';
     });
-
-
-
 });

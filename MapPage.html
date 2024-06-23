@@ -1,13 +1,58 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-     <title>Map Page</title>
+    <meta charset="UTF-8">
+    <title>HDB Finder Map</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #F0F0F0;
+        }
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
 </head>
-Map Page
-<div id="resultsContainer" class="results-container">
-     <a href=MapPage.html><button type="submit">View Map</button></a>
-</div>
-</body>
+<body>
+    <h1>HDB Finder Map</h1>
+    <div id="map"></div>
+    <script>
+        function initMap() {
+            const singapore = { lat: 1.3521, lng: 103.8198 };
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: singapore
+            });
 
+            const combinedList = JSON.parse(localStorage.getItem("combinedList"));
+            if (combinedList) {
+                combinedList.forEach(item => {
+                    const hdb = item[0][0];
+                    const coordinates = item[0][1];
+                    if (coordinates) {
+                        const marker = new google.maps.Marker({
+                            position: { lat: parseFloat(coordinates.latitude), lng: parseFloat(coordinates.longitude) },
+                            map: map,
+                            title: hdb.block + " " + hdb.street_name
+                        });
+
+                        const infowindow = new google.maps.InfoWindow({
+                            content: `<h3>${hdb.block} ${hdb.street_name}</h3>`
+                        });
+
+                        marker.addListener("click", () => {
+                            infowindow.open(map, marker);
+                        });
+                    }
+                });
+            } else {
+                console.error("No combinedList found in localStorage");
+            }
+        }
+    </script>
+</body>
 </html>
