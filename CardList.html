@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
             font-family: Arial, sans-serif;
             padding: 20px;
         }
+
         .card {
             border: 1px solid #ccc;
             border-radius: 10px;
@@ -18,12 +20,13 @@
         }
     </style>
 </head>
+
 <body>
     <h1>Card List</h1>
     <div class="results-container" id="results-container"></div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             let jsonString = localStorage.getItem("combinedList");
             if (!jsonString) {
                 console.error("No combinedList found in localStorage");
@@ -47,7 +50,7 @@
                     <h3>${hdb.flat_type} - ${hdb.block} ${hdb.street_name}</h3>
                     <p>Town: ${hdb.town}</p>
                     <p>Storey Range: ${hdb.storey_range}</p>
-                    <p>Flat Area: ${hdb.flat_area} sqm</p>
+                    <p>Flat Area: ${hdb.floor_area_sqm} sqm</p>
                     <p>Lease Commence Date: ${hdb.lease_commence_date}</p>
                     <p>Remaining Lease: ${hdb.remaining_lease} years</p>
                     <p>Resale Price: $${hdb.resale_price}</p>
@@ -78,13 +81,44 @@
                     cardContent += `<p>Junior College Distance: ${combinedList[i][5][0][1]} km</p>`;
                 }
 
+                cardContent += `
+            <button class="map-button" data-index="${i}">View on Map</button>
+        `;
+
                 // Set the inner HTML of the card
                 card.innerHTML = cardContent;
 
                 // Append card to results container
                 resultsContainer.appendChild(card);
-            }
+            
+            resultsContainer.addEventListener("click", function (event) {
+                if (event.target.classList.contains("map-button")) {
+                    let index = event.target.getAttribute("data-index");
+                    let hdb = combinedList[index][0][0];
+
+                    if (hdb) {
+                        // Set localStorage item for coordinates
+                        localStorage.setItem("selectedHDBCoords", JSON.stringify({
+                            latitude: combinedList[i][0][1].latitude,
+                            longitude: combinedList[i][0][1].longitude
+                        }));
+
+                        console.log(combinedList[i][1])
+                        localStorage.setItem("selectedMRTCoords", JSON.stringify({
+                            latitude: combinedList[i][1][0][0].latitude,
+                            longitude: combinedList[i][1][0][0].longitude
+                        }));
+
+                        // Redirect to map page with HDB information
+                        window.location.href = "MapPage.html";
+                    } else {
+                        console.error("No corresponding HDB information found.");
+                    }
+                }
+            });
+        }
         });
     </script>
 </body>
+
 </html>

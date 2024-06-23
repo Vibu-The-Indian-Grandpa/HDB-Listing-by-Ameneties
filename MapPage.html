@@ -17,14 +17,32 @@
             height: 100%;
             width: 100%;
         }
+        button {
+            position: absolute;
+            top: 80px;
+            left: 10px;
+            z-index: 1000;
+            background-color: #ffffff;
+            border: 1px solid #cccccc;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
 
+    <button onclick="goBack()">Back to Card List</button>
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-          localStorage.getItem("combinedList");
+        let coords = JSON.parse(localStorage.getItem("selectedHDBCoords"));
+        let mrtCoords = JSON.parse(localStorage.getItem("selectedMRTCoords"));
+        console.log(coords)
+        console.log(mrtCoords);
         var map = L.map('map').setView([1.3521, 103.8198], 13); // Center the map on Singapore with zoom level 13
 
         var basemap = L.tileLayer('https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png', {
@@ -36,8 +54,8 @@
         }).addTo(map);
 
         // Add markers to the map
-        var marker1 = L.marker([1.3521, 103.8198]).addTo(map); // Example marker at Singapore
-        var marker2 = L.marker([1.3000, 103.8000]).addTo(map); // Another marker example
+        var marker1 = L.marker([coords.latitude, coords.longitude]).addTo(map); // Example marker at Singapore
+        var marker2 = L.marker([mrtCoords.latitude, mrtCoords.longitude]).addTo(map); // Another marker example
 
         // Bind popups to the markers and immediately open them
         marker1.bindPopup("<b>Marker 1</b><br>This is Singapore.").openPopup();
@@ -56,6 +74,10 @@
                 marker1.openPopup();
             }
         });
+
+        function goBack() {
+            window.location.href = "CardList.html";
+        }
     </script>
 </body>
 </html>

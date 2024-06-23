@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                     type: item.type
                 }));
                 MRTList.push(...transformedList);
+                console.log(MRTList)
             } else {
                 console.log("No data available");
             }
@@ -231,44 +232,46 @@ document.addEventListener("DOMContentLoaded", async function () {
             async getListOfCoordinates(uniqueLocationList) {
                 const listOfAddress = getListOfAddress(uniqueLocationList);
                 let listOfCoordinates = [];
-                // console.log(listOfAddress[0]);
-                console.log("listOfCoordinates");
-                
-                for (const item of listOfAddress) {
-                    listOfCoordinates.push(await getCoordinates(item));
-                }
-                
+            
+                // Map each address to a promise of fetching coordinates asynchronously
+                const promises = listOfAddress.map(async (item) => {
+                    return await getCoordinates(item); // Await here to ensure it waits for each coordinate fetch
+                });
+            
+                // Wait for all promises to resolve using Promise.all
+                listOfCoordinates = await Promise.all(promises);
+            
                 return listOfCoordinates;
             },
             async getListOfDist(specifiedCoordList, amenityCoordList) {
-                let leastDistance = Infinity;
-                let tempDistance = 0;
+                const D2R = Math.PI / 180;
                 let arrayOfLeastDist = [];
-                let arrayOfamenityCoord = [];
-                let tempArray = [];
-                
+            
                 for (let i = 0; i < specifiedCoordList.length; i++) {
-
+                    let leastDistance = Infinity;
+                    let arrayOfamenityCoord = null;
+            
                     for (let j = 0; j < amenityCoordList.length; j++) {
-                        console.log(specifiedCoordList[i].latitude)
-                        console.log(amenityCoordList[j].latitude)
-                        tempDistance = distanceCalculation(
+                        let tempDistance = distanceCalculation(
                             parseFloat(specifiedCoordList[i].latitude), parseFloat(specifiedCoordList[i].longitude),
                             amenityCoordList[j].latitude, amenityCoordList[j].longitude, D2R
                         );
-                        console.log(leastDistance)
-                        if (tempDistance > leastDistance) {
-                            tempDistance = leastDistance;
+            
+                        console.log("Distance:", tempDistance);
+            
+                        if (tempDistance < leastDistance) {
+                            leastDistance = tempDistance;
                             arrayOfamenityCoord = amenityCoordList[j];
-                            tempArray = [arrayOfamenityCoord[j], leastDistance];
-                            console.log(tempArray);
                         }
                     }
-                    arrayOfLeastDist.push(tempArray);
+            
+                    arrayOfLeastDist.push([arrayOfamenityCoord, leastDistance]);
                 }
-        
+            
+                console.log("Array of Least Distance:", arrayOfLeastDist);
                 return arrayOfLeastDist;
             }
+            
         }
     }
     
@@ -290,7 +293,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         event.preventDefault();
         // warningCard.classList.add("d-none");
 
-        let listOfSchool = [], listofpri = [], listofsec = [], listofjc = [], listOfMall = [], listOfMrt = [];
+        let listOfSchool = [], listofpri = [], listofsec = [], listofjc = [], listOfMall = [], listOfMrt = [], tempCoordList = [];
         var combinedList = [];
         let locationInput = document.getElementById("location").value;
 
@@ -300,17 +303,21 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         let specifiedList = HDBinfo.getSpecifiedHDB(locationInput);
         let listOfSpecifiedCoord = await HDBinfo.getListOfCoordinates(specifiedList);
-        console.log(listOfSpecifiedCoord[0])
+        
+        console.log(listOfSpecifiedCoord);
         console.log("Hello")
 
         console.log(listOfSpecifiedCoord)
-        for (let i = 0; i < specifiedList.length; i++) {
-            combinedList.push([[specifiedList[i], listOfSpecifiedCoord[i]], [], [], [], [], []]);
+        console.log(specifiedList[0].length)
+        for (let i = 0; i < specifiedList[0].length; i++) {
+            tempCoordList = [specifiedList[0][i], listOfSpecifiedCoord[i]]
+            console.log(tempCoordList);
+            combinedList.push([tempCoordList, [], [], [], [], []]);
         }
         console.log(combinedList);
         if (MRTStationCheckbox.checked) {
-            listOfMrt = HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList);
-            for (let i = 0; i < specifiedList.length; i++) {
+            listOfMrt = await HDBinfo.getListOfDist(listOfSpecifiedCoord, MRTList);
+            for (let i = 0; i < specifiedList[0].length; i++) {
                 console.log(listOfMrt);
                 combinedList[i][1].push(listOfMrt[i]);
             }
@@ -357,6 +364,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         });
         console.log(combinedList);
         localStorage.setItem("combinedList", JSON.stringify(combinedList));
-        // window.location.href = 'MapPage.html';
+        window.location.href = 'CardList.html';
     });
 });
