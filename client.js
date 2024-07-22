@@ -289,6 +289,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const warningCard = document.getElementById("warningCard");
 
     form.addEventListener("submit",async function (event) {
+        
         console.log("Form.addEventListener");
         event.preventDefault();
         // warningCard.classList.add("d-none");
